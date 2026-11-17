@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Licence Tracking — Test Page</title>
+<style>
+  :root{
+    --bg:#f6f5f1;
+    --surface:#ffffff;
+    --surface-2:#eef2ee;
+    --ink:#1c2420;
+    --ink-soft:#4a554e;
+    --line:#d8ddd6;
+    --accent:#14532d;
+    --accent-ink:#ffffff;
+    --accent-soft:#e3efe4;
+    --warn-bg:#fdf3e0;
+    --warn-ink:#7a4d00;
+    --warn-line:#e8cf9a;
+    --danger-bg:#fdeceb;
+    --danger-ink:#8a1f1a;
+    --danger-line:#f0b8b3;
+    --ok-bg:#e7f4e9;
+    --ok-ink:#14532d;
+    --amber:#b45309;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141815;
+      --surface:#1e2420;
+      --surface-2:#252c27;
+      --ink:#eef1ec;
+      --ink-soft:#aeb8b0;
+      --line:#39423c;
+      --accent:#4ade80;
+      --accent-ink:#0c1a10;
+      --accent-soft:#223528;
+      --warn-bg:#3a2f14;
+      --warn-ink:#f5cf7d;
+      --warn-line:#6b561f;
+      --danger-bg:#3d1d1b;
+      --danger-ink:#f5a49e;
+      --danger-line:#7a3a36;
+      --ok-bg:#1e3324;
+      --ok-ink:#8fe3a5;
+      --amber:#f0a35e;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:17px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 56px}
+  h1{font-size:34px;line-height:1.15;margin:0 0 12px;letter-spacing:-0.01em;font-weight:800}
+  h2{font-size:23px;line-height:1.25;margin:0 0 8px;font-weight:750}
+  h3{font-size:18px;margin:0 0 6px;font-weight:700}
+  p{margin:0 0 12px}
+  .soft{color:var(--ink-soft)}
+  .small{font-size:14px}
+  .testbar{
+    background:var(--warn-bg);color:var(--warn-ink);border-bottom:1px solid var(--warn-line);
+    text-align:center;padding:10px 16px;font-size:14.5px;font-weight:600;
+  }
+  section.card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 20px;margin:18px 0;
+  }
+  section.plain{padding:6px 2px;margin:26px 0}
+  .step-label{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+  .name-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+  @media(min-width:560px){.name-grid{grid-template-columns:repeat(3,1fr)}}
+  .name-opt{
+    text-align:left;background:var(--surface-2);border:2px solid var(--line);border-radius:var(--radius);
+    padding:14px 14px;cursor:pointer;font:inherit;color:var(--ink);width:100%;
+  }
+  .name-opt .nm{font-size:19px;font-weight:800;display:block}
+  .name-opt .dm{font-size:14px;color:var(--ink-soft);display:block;margin-top:2px}
+  .name-opt .why{font-size:13.5px;display:block;margin-top:8px;color:var(--ink-soft)}
+  .name-opt.selected{border-color:var(--accent);background:var(--accent-soft)}
+  .name-opt:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+  .pick-note{margin-top:12px;font-size:15px;display:none}
+  .pick-note.show{display:block;background:var(--ok-bg);color:var(--ok-ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-weight:600}
+  .hero{padding-top:30px}
+  .hero .lead{font-size:19px;color:var(--ink-soft);max-width:34em}
+  .ticks{list-style:none;margin:16px 0 4px;padding:0}
+  .ticks li{padding:5px 0 5px 28px;position:relative}
+  .ticks li::before{content:"";position:absolute;left:2px;top:13px;width:9px;height:5px;border-left:3px solid var(--accent);border-bottom:3px solid var(--accent);transform:rotate(-45deg)}
+  label{display:block;font-weight:650;font-size:15px;margin:14px 0 5px}
+  input[type="text"],input[type="date"],select{
+    width:100%;padding:12px 12px;font:inherit;font-size:16px;color:var(--ink);
+    background:var(--surface);border:1.5px solid var(--line);border-radius:8px;
+  }
+  input:focus,select:focus{outline:3px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
+  .btn{
+    display:inline-block;width:100%;margin-top:18px;padding:15px 18px;
+    background:var(--accent);color:var(--accent-ink);border:none;border-radius:8px;
+    font:inherit;font-size:17px;font-weight:750;cursor:pointer;text-align:center;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+  .btn.secondary{background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line)}
+  .result{display:none;margin-top:16px;border-radius:8px;padding:14px 16px;font-size:15.5px}
+  .result.show{display:block}
+  .result.ok{background:var(--ok-bg);color:var(--ok-ink);border:1px solid var(--line)}
+  .result.warn{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line)}
+  .result.danger{background:var(--danger-bg);color:var(--danger-ink);border:1px solid var(--danger-line)}
+  .result.neutral{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+  .result strong{font-weight:800}
+  .days-big{font-size:30px;font-weight:850;line-height:1.1;display:block;margin:2px 0 4px}
+  .price-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+  @media(min-width:620px){.price-grid{grid-template-columns:repeat(3,1fr)}}
+  .tier{border:1.5px solid var(--line);border-radius:var(--radius);padding:18px 16px;background:var(--surface)}
+  .tier.mid{border-color:var(--accent);background:var(--accent-soft)}
+  .tier .amt{font-size:32px;font-weight:850;line-height:1}
+  .tier .per{font-size:14px;color:var(--ink-soft)}
+  .tier ul{margin:12px 0 0;padding-left:18px;font-size:15px}
+  .tier li{margin:5px 0}
+  .tag{display:inline-block;font-size:12.5px;font-weight:750;background:var(--accent);color:var(--accent-ink);border-radius:20px;padding:2px 10px;margin-bottom:10px}
+  .q{margin:20px 0}
+  .q:first-of-type{margin-top:8px}
+  .q p{font-weight:700;margin-bottom:8px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opt{
+    font:inherit;font-size:15.5px;padding:10px 16px;border-radius:24px;cursor:pointer;
+    background:var(--surface);color:var(--ink);border:1.5px solid var(--line);
+  }
+  .opt.selected{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .opt:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+  footer{border-top:1px solid var(--line);margin-top:34px;padding-top:20px;font-size:14.5px;color:var(--ink-soft)}
+  footer p{margin-bottom:10px}
+  .disclaimer{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;font-size:15px;color:var(--ink)}
+  a{color:var(--accent)}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="testbar">Pilot test page. CrewDue has not launched yet. The $20 deposit is refundable in full, at any time.</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>Never miss a licence deadline again.</h1>
+    <p class="lead">We track every date that can stop your work — and warn you well before it runs out.</p>
+    <ul class="ticks">
+      <li>Your firm licence</li>
+      <li>Every worker's licence and training (CE) hours</li>
+      <li>Insurance papers (certs) from your subs</li>
+      <li>Your bonds</li>
+    </ul>
+    <p>One tap makes a <strong>proof packet</strong> — all your papers in one neat file, ready to send to any job or customer who asks.</p>
+  </div>
+
+
+  <section class="card" id="join">
+    <div class="step-label">Step 2 — test the idea</div>
+    <h2>Hold your spot for $20</h2>
+    <p>The $20 is a <strong>refundable deposit</strong>. You can ask for it back at any time, for any reason. It just shows us you mean it, so we build this first for firms like yours.</p>
+    <p class="small soft">This is a pilot test, not a finished product. Fill in the three boxes below, then pay the $20 on Stripe's secure payment page. If the pilot does not go ahead, every deposit is returned in full.</p>
+
+    <form id="firmForm" novalidate>
+      <label for="company">Company name</label>
+      <input type="text" id="company" name="company" autocomplete="organization" placeholder="e.g. Smith Electric LLC" />
+
+      <label for="trade">Your trade</label>
+      <select id="trade" name="trade">
+        <option value="">Pick one…</option>
+        <option>Electrical</option>
+        <option>HVAC</option>
+        <option>Plumbing</option>
+        <option>Roofing</option>
+        <option>General contractor</option>
+        <option>Other trade</option>
+      </select>
+
+      <label for="state">Your state</label>
+      <select id="state" name="state">
+        <option value="">Pick one…</option>
+        <option>Texas</option><option>Florida</option><option>California</option>
+        <option>Arizona</option><option>Georgia</option><option>North Carolina</option>
+        <option>Ohio</option><option>Pennsylvania</option><option>Illinois</option>
+        <option>New York</option><option>Colorado</option><option>Tennessee</option>
+        <option>Another state</option>
+      </select>
+
+      <button type="submit" class="btn">Hold my spot — $20 refundable deposit</button>
+      <p class="small soft" style="margin-top:10px;text-align:center">Refundable at any time. You pay on Stripe's secure page, not on this page.</p>
+    </form>
+    <div class="result neutral" id="firmResult" role="status"></div>
+  </section>
+
+
+  <section class="card" id="checker">
+    <div class="step-label">Free tool</div>
+    <h2>Check your licence date — free</h2>
+    <p class="soft">Put in your licence end date. We will tell you how much time you have left, in plain words.</p>
+
+    <form id="checkForm" novalidate>
+      <label for="cTrade">Trade</label>
+      <select id="cTrade">
+        <option value="">Pick one…</option>
+        <option>Electrical</option>
+        <option>HVAC</option>
+        <option>Plumbing</option>
+        <option>Roofing</option>
+        <option>General contractor</option>
+        <option>Other trade</option>
+      </select>
+
+      <label for="cState">State</label>
+      <select id="cState">
+        <option value="">Pick one…</option>
+        <option>Texas</option><option>Florida</option><option>California</option>
+        <option>Arizona</option><option>Georgia</option><option>North Carolina</option>
+        <option>Ohio</option><option>Pennsylvania</option><option>Illinois</option>
+        <option>New York</option><option>Colorado</option><option>Tennessee</option>
+        <option>Another state</option>
+      </select>
+
+      <label for="cDate">Licence end date (the date on your licence)</label>
+      <input type="date" id="cDate" />
+
+      <button type="submit" class="btn secondary">Check my date</button>
+    </form>
+    <div class="result" id="checkResult" role="status"></div>
+  </section>
+
+
+  <section class="plain" id="pricing">
+    <h2>Simple prices. Per firm, not per person.</h2>
+    <p class="soft">One flat price for your whole firm. No charge per worker. Cancel any time.</p>
+    <div class="price-grid">
+      <div class="tier">
+        <h3>Starter</h3>
+        <div><span class="amt">$49</span> <span class="per">/ month</span></div>
+        <ul>
+          <li>Firm licence tracking</li>
+          <li>Up to 10 workers</li>
+          <li>Date reminders by email</li>
+          <li>Proof packet</li>
+        </ul>
+      </div>
+      <div class="tier mid">
+        <span class="tag">Best value</span>
+        <h3>Standard</h3>
+        <div><span class="amt">$79</span> <span class="per">/ month</span></div>
+        <ul>
+          <li>All of Starter</li>
+          <li>Up to 30 workers</li>
+          <li>Training (CE) hours tracked</li>
+          <li>Sub insurance papers tracked</li>
+          <li>Bond reminders</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <h3>Plus</h3>
+        <div><span class="amt">$149</span> <span class="per">/ month</span></div>
+        <ul>
+          <li>All of Standard</li>
+          <li>No worker limit</li>
+          <li>More than one state</li>
+          <li>First in line for help</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small soft" style="margin-top:12px">These are test prices. They may change before launch. Once a deposit is paid, that deposit holds the price shown here for that firm.</p>
+  </section>
+
+
+  <section class="card" id="questions">
+    <div class="step-label">3 quick questions</div>
+    <h2>Tell us in taps — no typing, no calls</h2>
+    <p class="soft">Your taps help us decide what to build first. Nothing is sent anywhere — your answers show right here on the page.</p>
+
+    <div class="q" data-q="q1">
+      <p>1. Has a licence, training, or insurance date ever run out on you or your firm?</p>
+      <div class="opts">
+        <button type="button" class="opt">Yes</button>
+        <button type="button" class="opt">No</button>
+        <button type="button" class="opt">Almost — caught it just in time</button>
+      </div>
+    </div>
+
+    <div class="q" data-q="q2">
+      <p>2. How do you keep track of these dates now?</p>
+      <div class="opts">
+        <button type="button" class="opt">In my head</button>
+        <button type="button" class="opt">Paper or a wall calendar</button>
+        <button type="button" class="opt">A spreadsheet</button>
+        <button type="button" class="opt">Another app</button>
+      </div>
+    </div>
+
+    <div class="q" data-q="q3">
+      <p>3. Would warnings before dates run out — plus a one-tap proof packet — be worth $49 a month to your firm?</p>
+      <div class="opts">
+        <button type="button" class="opt">Yes</button>
+        <button type="button" class="opt">Maybe</button>
+        <button type="button" class="opt">No</button>
+      </div>
+    </div>
+
+    <div class="result neutral" id="qResult" role="status"></div>
+  </section>
+
+  <section class="plain">
+    <h2>What happens next</h2>
+    <p><strong>1.</strong> Firms hold a spot with the $20 refundable deposit.<br />
+    <strong>2.</strong> If 3 or more firms pay, we build the full app — starting with electrical and HVAC in 5 big states.<br />
+    <strong>3.</strong> If not enough firms pay, every deposit goes back in full. No one loses a cent.</p>
+  </section>
+
+
+  <footer>
+    <div class="disclaimer">
+      <strong>Please read this — it matters.</strong><br />
+      We remind you about your dates. <strong>We do not guarantee your compliance.</strong> The law, your licence, and your papers stay your firm's job at all times. Always check your dates with your state board too. A missed date can still cost you money or work — this tool lowers that risk, it does not remove it.
+    </div>
+    <p style="margin-top:16px">This is a <strong>pilot test page</strong> for a new service that has not launched yet. The $20 deposit is a refundable test deposit, paid on Stripe's secure payment page. If the service does not launch, all deposits are returned in full.</p>
+    <p>Like any business that takes payments, this service has one named owner who is legally responsible for it. Day-to-day questions, fixes, and refunds are handled in writing under set rules — firms never need to hunt down a person to get help.</p>
+    <p>Questions are answered in writing through the help page once the service launches. There are no sales calls and no demos — by design.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var firmForm = document.getElementById('firmForm');
+  var firmResult = document.getElementById('firmResult');
+  firmForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var company = document.getElementById('company').value.trim();
+    var trade = document.getElementById('trade').value;
+    var state = document.getElementById('state').value;
+    firmResult.className = 'result show';
+    if(!company || !trade || !state){
+      firmResult.classList.add('warn');
+      firmResult.textContent = 'Almost there — please fill in all three: company name, trade, and state. Then tap the button again.';
+      return;
+    }
+    firmResult.classList.add('ok');
+    firmResult.innerHTML = '';
+    var strong = document.createElement('strong');
+    strong.textContent = 'Got it — here is what you entered:';
+    firmResult.appendChild(strong);
+    firmResult.appendChild(document.createElement('br'));
+    firmResult.appendChild(document.createTextNode('Company: ' + company));
+    firmResult.appendChild(document.createElement('br'));
+    firmResult.appendChild(document.createTextNode('Trade: ' + trade + '  ·  State: ' + state));
+    firmResult.appendChild(document.createElement('br'));
+    firmResult.appendChild(document.createTextNode('Taking you to Stripe’s secure page now to pay the $20 refundable deposit…'));
+    setTimeout(function(){
+      window.location.href = 'https://buy.stripe.com/00w3cxfKy2lN9kzceWeQM00';
+    }, 1200);
+  });
+  var checkForm = document.getElementById('checkForm');
+  var checkResult = document.getElementById('checkResult');
+  checkForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var trade = document.getElementById('cTrade').value;
+    var state = document.getElementById('cState').value;
+    var dateVal = document.getElementById('cDate').value;
+    checkResult.className = 'result show';
+    checkResult.innerHTML = '';
+    if(!trade || !state || !dateVal){
+      checkResult.classList.add('warn');
+      checkResult.textContent = 'Please pick your trade, your state, and your licence end date. Then tap "Check my date" again.';
+      return;
+    }
+    var today = new Date(); today.setHours(0,0,0,0);
+    var parts = dateVal.split('-');
+    var end = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    var days = Math.round((end - today) / 86400000);
+    var big = document.createElement('span'); big.className = 'days-big';
+    var msg = document.createElement('span');
+    if(days < 0){
+      checkResult.classList.add('danger');
+      big.textContent = Math.abs(days) + (Math.abs(days) === 1 ? ' day late' : ' days late');
+      msg.textContent = 'This ' + trade + ' licence in ' + state + ' has already run out. Renew it now — in most states you cannot work legally until it is renewed.';
+    } else if(days === 0){
+      checkResult.classList.add('danger');
+      big.textContent = 'Ends today';
+      msg.textContent = 'This ' + trade + ' licence in ' + state + ' ends today. Renew it today if you can.';
+    } else if(days <= 30){
+      checkResult.classList.add('danger');
+      big.textContent = days + (days === 1 ? ' day left' : ' days left');
+      msg.textContent = 'Danger zone. Your ' + trade + ' licence in ' + state + ' runs out very soon. Start the renewal now — state offices can take days or weeks.';
+    } else if(days <= 90){
+      checkResult.classList.add('warn');
+      big.textContent = days + ' days left';
+      msg.textContent = 'Time to act soon. Your ' + trade + ' licence in ' + state + ' runs out in about ' + Math.round(days/7) + ' weeks. Put the renewal on your list this week.';
+    } else {
+      checkResult.classList.add('ok');
+      big.textContent = days + ' days left';
+      msg.textContent = 'You have time. Your ' + trade + ' licence in ' + state + ' is fine for now. The risk is forgetting later — that is what the reminders are for.';
+    }
+    checkResult.appendChild(big);
+    checkResult.appendChild(msg);
+    checkResult.appendChild(document.createElement('br'));
+    checkResult.appendChild(document.createElement('br'));
+    var ce = document.createElement('strong');
+    ce.textContent = 'Do not forget your training hours: ';
+    checkResult.appendChild(ce);
+    checkResult.appendChild(document.createTextNode('most ' + trade + ' licences also need training (CE) hours finished before the same end date. If the hours are not done, the licence can still be blocked — even if you pay on time. Our app tracks the hours and the date together, so one does not slip past the other.'));
+    checkResult.appendChild(document.createElement('br'));
+    checkResult.appendChild(document.createElement('br'));
+    checkResult.appendChild(document.createTextNode('Reminder: this check is a guide only. Always confirm your real end date with your ' + state + ' state board.'));
+  });
+  var answers = {};
+  var qResult = document.getElementById('qResult');
+  var questions = document.querySelectorAll('.q');
+  questions.forEach(function(q){
+    var key = q.getAttribute('data-q');
+    var opts = q.querySelectorAll('.opt');
+    opts.forEach(function(opt){
+      opt.addEventListener('click', function(){
+        opts.forEach(function(o){ o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        answers[key] = opt.textContent.trim();
+        showQSummary();
+      });
+    });
+  });
+  var qLabels = {
+    q1: 'Missed a date before',
+    q2: 'Tracks dates now with',
+    q3: 'Worth $49 a month'
+  };
+  function showQSummary(){
+    var keys = Object.keys(answers);
+    if(keys.length === 0) return;
+    qResult.className = 'result show neutral';
+    qResult.innerHTML = '';
+    var strong = document.createElement('strong');
+    strong.textContent = keys.length === 3 ? 'All 3 answered — thank you. Here are your answers:' : 'Your answers so far (' + keys.length + ' of 3):';
+    qResult.appendChild(strong);
+    ['q1','q2','q3'].forEach(function(k){
+      if(answers[k]){
+        qResult.appendChild(document.createElement('br'));
+        qResult.appendChild(document.createTextNode(qLabels[k] + ': ' + answers[k]));
+      }
+    });
+    if(keys.length === 3){
+      qResult.appendChild(document.createElement('br'));
+      qResult.appendChild(document.createTextNode('That is all we need. If this sounds useful, the $20 refundable deposit at the top of the page is how firms hold a spot.'));
+    }
+  }
+})();
+</script>
+</body>
+</html>
