@@ -164,38 +164,11 @@
     <div class="step-label">Step 2 — test the idea</div>
     <h2>Hold your spot for $20</h2>
     <p>The $20 is a <strong>refundable deposit</strong>. You can ask for it back at any time, for any reason. It just shows us you mean it, so we build this first for firms like yours.</p>
-    <p class="small soft">This is a pilot test, not a finished product. Fill in the three boxes below, then pay the $20 on Stripe's secure payment page. If the pilot does not go ahead, every deposit is returned in full.</p>
+    <p class="small soft">This is a pilot test, not a finished product. Tap the button below to go to Stripe's secure payment page. Stripe will ask for your company name, your trade, and your state, then take the $20. If the pilot does not go ahead, every deposit is returned in full.</p>
 
-    <form id="firmForm" novalidate>
-      <label for="company">Company name</label>
-      <input type="text" id="company" name="company" autocomplete="organization" placeholder="e.g. Smith Electric LLC" />
-
-      <label for="trade">Your trade</label>
-      <select id="trade" name="trade">
-        <option value="">Pick one…</option>
-        <option>Electrical</option>
-        <option>HVAC</option>
-        <option>Plumbing</option>
-        <option>Roofing</option>
-        <option>General contractor</option>
-        <option>Other trade</option>
-      </select>
-
-      <label for="state">Your state</label>
-      <select id="state" name="state">
-        <option value="">Pick one…</option>
-        <option>Texas</option><option>Florida</option><option>California</option>
-        <option>Arizona</option><option>Georgia</option><option>North Carolina</option>
-        <option>Ohio</option><option>Pennsylvania</option><option>Illinois</option>
-        <option>New York</option><option>Colorado</option><option>Tennessee</option>
-        <option>Another state</option>
-      </select>
-
-      <button type="submit" class="btn">Hold my spot — $20 refundable deposit</button>
-      <p class="small soft" style="margin-top:10px;text-align:center">Refundable at any time. You pay on Stripe's secure page, not on this page.</p>
-    </form>
-    <div class="result neutral" id="firmResult" role="status"></div>
-  </section>
+    <a class="btn" style="text-decoration:none" href="https://buy.stripe.com/00w3cxfKy2lN9kzceWeQM00">Hold my spot — $20 refundable deposit</a>
+            <p class="small soft" style="margin-top:10px;text-align:center">Refundable at any time. You pay on Stripe's secure page, not on this page.</p>
+      </section>
 
 
   <section class="card" id="checker">
@@ -334,35 +307,7 @@
 <script>
 (function(){
   "use strict";
-  var firmForm = document.getElementById('firmForm');
-  var firmResult = document.getElementById('firmResult');
-  firmForm.addEventListener('submit', function(e){
-    e.preventDefault();
-    var company = document.getElementById('company').value.trim();
-    var trade = document.getElementById('trade').value;
-    var state = document.getElementById('state').value;
-    firmResult.className = 'result show';
-    if(!company || !trade || !state){
-      firmResult.classList.add('warn');
-      firmResult.textContent = 'Almost there — please fill in all three: company name, trade, and state. Then tap the button again.';
-      return;
-    }
-    firmResult.classList.add('ok');
-    firmResult.innerHTML = '';
-    var strong = document.createElement('strong');
-    strong.textContent = 'Got it — here is what you entered:';
-    firmResult.appendChild(strong);
-    firmResult.appendChild(document.createElement('br'));
-    firmResult.appendChild(document.createTextNode('Company: ' + company));
-    firmResult.appendChild(document.createElement('br'));
-    firmResult.appendChild(document.createTextNode('Trade: ' + trade + '  ·  State: ' + state));
-    firmResult.appendChild(document.createElement('br'));
-    firmResult.appendChild(document.createTextNode('Taking you to Stripe’s secure page now to pay the $20 refundable deposit…'));
-    setTimeout(function(){
-      window.location.href = 'https://buy.stripe.com/00w3cxfKy2lN9kzceWeQM00';
-    }, 1200);
-  });
-  var checkForm = document.getElementById('checkForm');
+    var checkForm = document.getElementById('checkForm');
   var checkResult = document.getElementById('checkResult');
   checkForm.addEventListener('submit', function(e){
     e.preventDefault();
