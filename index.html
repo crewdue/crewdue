@@ -5,18 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:," />
-<title>Licence Tracking — Test Page</title>
+<title>CrewDue — Pilot Test Page</title>
 <style>
   :root{
-    --bg:#f6f5f1;
+    --bg:#f7f6f2;
     --surface:#ffffff;
     --surface-2:#eef2ee;
     --ink:#1c2420;
-    --ink-soft:#4a554e;
-    --line:#d8ddd6;
+    --ink-soft:#55615a;
+    --line:#dde2da;
     --accent:#14532d;
     --accent-ink:#ffffff;
-    --accent-soft:#e3efe4;
+    --accent-soft:#e4efe5;
+    --amber:#b45309;
+    --red:#b3261e;
     --warn-bg:#fdf3e0;
     --warn-ink:#7a4d00;
     --warn-line:#e8cf9a;
@@ -25,12 +27,11 @@
     --danger-line:#f0b8b3;
     --ok-bg:#e7f4e9;
     --ok-ink:#14532d;
-    --amber:#b45309;
-    --radius:10px;
+    --radius:14px;
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#141815;
+      --bg:#131714;
       --surface:#1e2420;
       --surface-2:#252c27;
       --ink:#eef1ec;
@@ -39,6 +40,8 @@
       --accent:#4ade80;
       --accent-ink:#0c1a10;
       --accent-soft:#223528;
+      --amber:#f0a35e;
+      --red:#f0857d;
       --warn-bg:#3a2f14;
       --warn-ink:#f5cf7d;
       --warn-line:#6b561f;
@@ -47,7 +50,6 @@
       --danger-line:#7a3a36;
       --ok-bg:#1e3324;
       --ok-ink:#8fe3a5;
-      --amber:#f0a35e;
     }
   }
   *{box-sizing:border-box}
@@ -58,9 +60,9 @@
     font-size:17px;line-height:1.55;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:760px;margin:0 auto;padding:0 18px 56px}
-  h1{font-size:34px;line-height:1.15;margin:0 0 12px;letter-spacing:-0.01em;font-weight:800}
-  h2{font-size:23px;line-height:1.25;margin:0 0 8px;font-weight:750}
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px 64px}
+  h1{font-size:36px;line-height:1.14;margin:0 0 14px;letter-spacing:-0.01em;font-weight:800}
+  h2{font-size:24px;line-height:1.25;margin:0 0 10px;font-weight:750}
   h3{font-size:18px;margin:0 0 6px;font-weight:700}
   p{margin:0 0 12px}
   .soft{color:var(--ink-soft)}
@@ -71,38 +73,41 @@
   }
   section.card{
     background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-    padding:22px 20px;margin:18px 0;
+    padding:26px 22px;margin:26px 0;
   }
-  section.plain{padding:6px 2px;margin:26px 0}
-  .step-label{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
-  .name-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
-  @media(min-width:560px){.name-grid{grid-template-columns:repeat(3,1fr)}}
-  .name-opt{
-    text-align:left;background:var(--surface-2);border:2px solid var(--line);border-radius:var(--radius);
-    padding:14px 14px;cursor:pointer;font:inherit;color:var(--ink);width:100%;
+  section.plain{padding:10px 2px;margin:38px 0}
+  .step-label{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+  .hero{padding:44px 0 6px;text-align:left}
+  .hero .lead{font-size:20px;color:var(--ink-soft);max-width:32em}
+  .pain-q{font-size:19px;font-weight:700;margin-top:26px}
+  .comic{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0 4px}
+  @media(min-width:600px){.comic{grid-template-columns:repeat(3,1fr)}}
+  .panel{
+    background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:12px 12px 10px;text-align:center;
   }
-  .name-opt .nm{font-size:19px;font-weight:800;display:block}
-  .name-opt .dm{font-size:14px;color:var(--ink-soft);display:block;margin-top:2px}
-  .name-opt .why{font-size:13.5px;display:block;margin-top:8px;color:var(--ink-soft)}
-  .name-opt.selected{border-color:var(--accent);background:var(--accent-soft)}
-  .name-opt:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-  .pick-note{margin-top:12px;font-size:15px;display:none}
-  .pick-note.show{display:block;background:var(--ok-bg);color:var(--ok-ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-weight:600}
-  .hero{padding-top:30px}
-  .hero .lead{font-size:19px;color:var(--ink-soft);max-width:34em}
-  .ticks{list-style:none;margin:16px 0 4px;padding:0}
-  .ticks li{padding:5px 0 5px 28px;position:relative}
-  .ticks li::before{content:"";position:absolute;left:2px;top:13px;width:9px;height:5px;border-left:3px solid var(--accent);border-bottom:3px solid var(--accent);transform:rotate(-45deg)}
+  .panel svg{width:100%;height:auto;display:block}
+  .panel .cap{font-size:14.5px;font-weight:650;margin-top:8px;line-height:1.4}
+  .panel .cap .red{color:var(--red)}
+  .watch{list-style:none;margin:18px 0 14px;padding:0}
+  .watch li{
+    padding:11px 0 11px 36px;position:relative;font-size:18px;border-bottom:1px solid var(--line);
+  }
+  .watch li:last-child{border-bottom:none}
+  .watch li::before{
+    content:"";position:absolute;left:4px;top:19px;width:11px;height:6px;
+    border-left:3.5px solid var(--accent);border-bottom:3.5px solid var(--accent);transform:rotate(-45deg);
+  }
   label{display:block;font-weight:650;font-size:15px;margin:14px 0 5px}
-  input[type="text"],input[type="date"],select{
+  input[type="date"],select{
     width:100%;padding:12px 12px;font:inherit;font-size:16px;color:var(--ink);
     background:var(--surface);border:1.5px solid var(--line);border-radius:8px;
   }
   input:focus,select:focus{outline:3px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
   .btn{
-    display:inline-block;width:100%;margin-top:18px;padding:15px 18px;
-    background:var(--accent);color:var(--accent-ink);border:none;border-radius:8px;
-    font:inherit;font-size:17px;font-weight:750;cursor:pointer;text-align:center;
+    display:inline-block;width:100%;margin-top:18px;padding:16px 18px;
+    background:var(--accent);color:var(--accent-ink);border:none;border-radius:10px;
+    font:inherit;font-size:18px;font-weight:750;cursor:pointer;text-align:center;
   }
   .btn:active{transform:translateY(1px)}
   .btn:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
@@ -115,7 +120,7 @@
   .result.neutral{background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
   .result strong{font-weight:800}
   .days-big{font-size:30px;font-weight:850;line-height:1.1;display:block;margin:2px 0 4px}
-  .price-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+  .price-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
   @media(min-width:620px){.price-grid{grid-template-columns:repeat(3,1fr)}}
   .tier{border:1.5px solid var(--line);border-radius:var(--radius);padding:18px 16px;background:var(--surface)}
   .tier.mid{border-color:var(--accent);background:var(--accent-soft)}
@@ -124,9 +129,9 @@
   .tier ul{margin:12px 0 0;padding-left:18px;font-size:15px}
   .tier li{margin:5px 0}
   .tag{display:inline-block;font-size:12.5px;font-weight:750;background:var(--accent);color:var(--accent-ink);border-radius:20px;padding:2px 10px;margin-bottom:10px}
-  .q{margin:20px 0}
-  .q:first-of-type{margin-top:8px}
-  .q p{font-weight:700;margin-bottom:8px}
+  .q{margin:24px 0}
+  .q:first-of-type{margin-top:10px}
+  .q p{font-weight:700;margin-bottom:9px;font-size:17.5px}
   .opts{display:flex;flex-wrap:wrap;gap:8px}
   .opt{
     font:inherit;font-size:15.5px;padding:10px 16px;border-radius:24px;cursor:pointer;
@@ -134,7 +139,7 @@
   }
   .opt.selected{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
   .opt:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-  footer{border-top:1px solid var(--line);margin-top:34px;padding-top:20px;font-size:14.5px;color:var(--ink-soft)}
+  footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;font-size:14.5px;color:var(--ink-soft)}
   footer p{margin-bottom:10px}
   .disclaimer{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;font-size:15px;color:var(--ink)}
   a{color:var(--accent)}
@@ -143,38 +148,124 @@
 </head>
 <body>
 
-<div class="testbar">Pilot test page. CrewDue has not launched yet. The $20 deposit is refundable in full, at any time.</div>
+<div class="testbar">Pilot test. CrewDue has not launched yet. The $20 deposit is refundable in full, at any time.</div>
 
 <div class="wrap">
 
   <div class="hero">
-    <h1>Never miss a licence deadline again.</h1>
-    <p class="lead">We track every date that can stop your work — and warn you well before it runs out.</p>
-    <ul class="ticks">
-      <li>Your firm licence</li>
-      <li>Every worker's licence and training (CE) hours</li>
-      <li>Insurance papers (certs) from your subs</li>
-      <li>Your bonds</li>
-    </ul>
-    <p>One tap makes a <strong>proof packet</strong> — all your papers in one neat file, ready to send to any job or customer who asks.</p>
+    <h1>One expired date can stop the whole job.</h1>
+    <p class="lead">CrewDue watches every date that can stop your work, and warns you before it runs out.</p>
+    <p class="pain-q">Has this ever happened on your site?</p>
   </div>
 
+  <div class="comic" role="img" aria-label="Three panel cartoon: a crew arrives at a job, the site manager finds their insurance cert expired, and the crew is turned away and loses the day.">
+    <div class="panel">
+      <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="130" fill="#eef2ee"/>
+        <circle cx="168" cy="24" r="13" fill="#f2b544"/>
+        <rect x="0" y="104" width="200" height="26" fill="#d8ddd6"/>
+        <rect x="118" y="34" width="6" height="72" fill="#8a948c"/>
+        <rect x="160" y="34" width="6" height="72" fill="#8a948c"/>
+        <rect x="112" y="30" width="60" height="7" fill="#8a948c"/>
+        <circle cx="58" cy="52" r="13" fill="#f2c79b"/>
+        <path d="M44 50 a14 14 0 0 1 28 0 z" fill="#f2b544"/>
+        <rect x="52" y="65" width="12" height="30" rx="4" fill="#14532d"/>
+        <rect x="40" y="70" width="34" height="24" rx="2" fill="#ffffff" stroke="#b9c2ba" stroke-width="1.5"/>
+        <line x1="46" y1="78" x2="68" y2="78" stroke="#b9c2ba" stroke-width="2"/>
+        <line x1="46" y1="85" x2="68" y2="85" stroke="#b9c2ba" stroke-width="2"/>
+        <circle cx="53" cy="51" r="1.8" fill="#1c2420"/>
+        <circle cx="63" cy="51" r="1.8" fill="#1c2420"/>
+        <path d="M53 58 q5 4 10 0" stroke="#1c2420" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+      <p class="cap">Monday, 7 am.<br />Big job today.</p>
+    </div>
+    <div class="panel">
+      <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="130" fill="#fdf3e0"/>
+        <rect x="0" y="104" width="200" height="26" fill="#e6dcc4"/>
+        <circle cx="52" cy="52" r="13" fill="#f2c79b"/>
+        <path d="M38 50 a14 14 0 0 1 28 0 z" fill="#f2b544"/>
+        <rect x="46" y="65" width="12" height="30" rx="4" fill="#14532d"/>
+        <circle cx="47" cy="51" r="1.8" fill="#1c2420"/>
+        <circle cx="57" cy="51" r="1.8" fill="#1c2420"/>
+        <path d="M47 60 q5 -4 10 0" stroke="#1c2420" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <rect x="86" y="30" width="62" height="78" rx="3" fill="#ffffff" stroke="#b9c2ba" stroke-width="1.5"/>
+        <line x1="94" y1="44" x2="140" y2="44" stroke="#b9c2ba" stroke-width="2.5"/>
+        <line x1="94" y1="54" x2="140" y2="54" stroke="#b9c2ba" stroke-width="2.5"/>
+        <line x1="94" y1="64" x2="126" y2="64" stroke="#b9c2ba" stroke-width="2.5"/>
+        <g transform="rotate(-12 117 88)">
+          <rect x="84" y="76" width="66" height="22" rx="3" fill="none" stroke="#b3261e" stroke-width="2.5"/>
+          <text x="117" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#b3261e">EXPIRED</text>
+        </g>
+        <circle cx="168" cy="52" r="13" fill="#e8b48c"/>
+        <path d="M154 50 a14 14 0 0 1 28 0 z" fill="#55615a"/>
+        <rect x="162" y="65" width="12" height="30" rx="4" fill="#55615a"/>
+        <circle cx="163" cy="51" r="1.8" fill="#1c2420"/>
+        <circle cx="173" cy="51" r="1.8" fill="#1c2420"/>
+        <line x1="163" y1="59" x2="173" y2="59" stroke="#1c2420" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <p class="cap">&#8220;Your cert expired<br />last week.&#8221;</p>
+    </div>
+    <div class="panel">
+      <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="130" fill="#f3ecec"/>
+        <rect x="0" y="104" width="200" height="26" fill="#ddd2d2"/>
+        <rect x="96" y="30" width="8" height="76" fill="#8a948c"/>
+        <rect x="150" y="30" width="8" height="76" fill="#8a948c"/>
+        <line x1="100" y1="34" x2="154" y2="102" stroke="#b3261e" stroke-width="5"/>
+        <line x1="154" y1="34" x2="100" y2="102" stroke="#b3261e" stroke-width="5"/>
+        <circle cx="52" cy="56" r="13" fill="#f2c79b"/>
+        <path d="M38 54 a14 14 0 0 1 28 0 z" fill="#f2b544"/>
+        <rect x="46" y="69" width="12" height="30" rx="4" fill="#14532d"/>
+        <circle cx="47" cy="55" r="1.8" fill="#1c2420"/>
+        <circle cx="57" cy="55" r="1.8" fill="#1c2420"/>
+        <path d="M47 64 q5 -4 10 0" stroke="#1c2420" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M40 46 q12 -8 24 0" stroke="#55615a" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="3 4"/>
+      </svg>
+      <p class="cap">No cert, no work.<br /><span class="red">The day, and the job, gone.</span></p>
+    </div>
+  </div>
 
-  <section class="card" id="join">
-    <div class="step-label">Step 2 — test the idea</div>
-    <h2>Hold your spot for $20</h2>
-    <p>The $20 is a <strong>refundable deposit</strong>. You can ask for it back at any time, for any reason. It just shows us you mean it, so we build this first for firms like yours.</p>
-    <p class="small soft">This is a pilot test, not a finished product. Tap the button below to go to Stripe's secure payment page. Stripe will ask for your company name, your trade, and your state, then take the $20. If the pilot does not go ahead, every deposit is returned in full.</p>
+  <section class="card" id="questions">
+    <div class="step-label">Be honest — three quick taps</div>
+    <h2>Sound familiar?</h2>
+    <p class="soft">Your taps help us decide what to build first. Nothing is sent anywhere — your answers show right here on the page.</p>
 
-    <a class="btn" style="text-decoration:none" href="https://buy.stripe.com/00w3cxfKy2lN9kzceWeQM00">Hold my spot — $20 refundable deposit</a>
-            <p class="small soft" style="margin-top:10px;text-align:center">Refundable at any time. You pay on Stripe's secure page, not on this page.</p>
-      </section>
+    <div class="q" data-q="q1">
+      <p>1. Has a licence, training, or insurance date ever run out on you or your firm?</p>
+      <div class="opts">
+        <button type="button" class="opt">Yes</button>
+        <button type="button" class="opt">No</button>
+        <button type="button" class="opt">Almost — caught it just in time</button>
+      </div>
+    </div>
 
+    <div class="q" data-q="q2">
+      <p>2. How do you keep track of these dates now?</p>
+      <div class="opts">
+        <button type="button" class="opt">In my head</button>
+        <button type="button" class="opt">Paper or a wall calendar</button>
+        <button type="button" class="opt">A spreadsheet</button>
+        <button type="button" class="opt">Another app</button>
+      </div>
+    </div>
+
+    <div class="q" data-q="q3">
+      <p>3. Would warnings before dates run out — plus a one-tap proof packet — be worth $49 a month to your firm?</p>
+      <div class="opts">
+        <button type="button" class="opt">Yes</button>
+        <button type="button" class="opt">Maybe</button>
+        <button type="button" class="opt">No</button>
+      </div>
+    </div>
+
+    <div class="result neutral" id="qResult" role="status"></div>
+  </section>
 
   <section class="card" id="checker">
     <div class="step-label">Free tool</div>
-    <h2>Check your licence date — free</h2>
-    <p class="soft">Put in your licence end date. We will tell you how much time you have left, in plain words.</p>
+    <h2>Check a date now — free</h2>
+    <p class="soft">Put in any licence end date. See how much time is really left.</p>
 
     <form id="checkForm" novalidate>
       <label for="cTrade">Trade</label>
@@ -206,10 +297,31 @@
     <div class="result" id="checkResult" role="status"></div>
   </section>
 
+  <section class="plain">
+    <h2>CrewDue watches it all</h2>
+    <ul class="watch">
+      <li>Your firm licence</li>
+      <li>Every worker's licence and training hours</li>
+      <li>Insurance certs from your subs</li>
+      <li>Your bonds</li>
+    </ul>
+    <p class="soft">Warnings land well before each date. One tap makes a <strong>proof packet</strong> — every paper in one file, ready for any job that asks.</p>
+  </section>
+
+  <section class="card" id="join">
+    <div class="step-label">The pilot</div>
+    <h2>Hold your spot for $20</h2>
+    <p><strong>Refundable in full.</strong> Any time, any reason.</p>
+    <p><strong>Your deposit locks the price below</strong> for your firm.</p>
+    <p class="soft">If fewer than 3 firms join, the pilot does not run, and every deposit goes back.</p>
+
+    <a class="btn" style="text-decoration:none" href="https://buy.stripe.com/00w3cxfKy2lN9kzceWeQM00">Hold my spot — $20 refundable deposit</a>
+    <p class="small soft" style="margin-top:10px;text-align:center">You pay on Stripe's secure page. Stripe will ask for your company name, trade, and state.</p>
+  </section>
 
   <section class="plain" id="pricing">
     <h2>Simple prices. Per firm, not per person.</h2>
-    <p class="soft">One flat price for your whole firm. No charge per worker. Cancel any time.</p>
+    <p class="soft">One flat price for your whole firm. Cancel any time.</p>
     <div class="price-grid">
       <div class="tier">
         <h3>Starter</h3>
@@ -244,53 +356,15 @@
         </ul>
       </div>
     </div>
-    <p class="small soft" style="margin-top:12px">These are test prices. They may change before launch. Once a deposit is paid, that deposit holds the price shown here for that firm.</p>
-  </section>
-
-
-  <section class="card" id="questions">
-    <div class="step-label">3 quick questions</div>
-    <h2>Tell us in taps — no typing, no calls</h2>
-    <p class="soft">Your taps help us decide what to build first. Nothing is sent anywhere — your answers show right here on the page.</p>
-
-    <div class="q" data-q="q1">
-      <p>1. Has a licence, training, or insurance date ever run out on you or your firm?</p>
-      <div class="opts">
-        <button type="button" class="opt">Yes</button>
-        <button type="button" class="opt">No</button>
-        <button type="button" class="opt">Almost — caught it just in time</button>
-      </div>
-    </div>
-
-    <div class="q" data-q="q2">
-      <p>2. How do you keep track of these dates now?</p>
-      <div class="opts">
-        <button type="button" class="opt">In my head</button>
-        <button type="button" class="opt">Paper or a wall calendar</button>
-        <button type="button" class="opt">A spreadsheet</button>
-        <button type="button" class="opt">Another app</button>
-      </div>
-    </div>
-
-    <div class="q" data-q="q3">
-      <p>3. Would warnings before dates run out — plus a one-tap proof packet — be worth $49 a month to your firm?</p>
-      <div class="opts">
-        <button type="button" class="opt">Yes</button>
-        <button type="button" class="opt">Maybe</button>
-        <button type="button" class="opt">No</button>
-      </div>
-    </div>
-
-    <div class="result neutral" id="qResult" role="status"></div>
+    <p class="small soft" style="margin-top:12px">Test prices. They may change before launch. A paid deposit holds the price shown here for that firm.</p>
   </section>
 
   <section class="plain">
     <h2>What happens next</h2>
     <p><strong>1.</strong> Firms hold a spot with the $20 refundable deposit.<br />
-    <strong>2.</strong> If 3 or more firms pay, we build the full app — starting with electrical and HVAC in 5 big states.<br />
-    <strong>3.</strong> If not enough firms pay, every deposit goes back in full. No one loses a cent.</p>
+    <strong>2.</strong> If 3 or more firms pay, we build the full app.<br />
+    <strong>3.</strong> If not, every deposit goes back in full. No one loses a cent.</p>
   </section>
-
 
   <footer>
     <div class="disclaimer">
@@ -307,7 +381,7 @@
 <script>
 (function(){
   "use strict";
-    var checkForm = document.getElementById('checkForm');
+  var checkForm = document.getElementById('checkForm');
   var checkResult = document.getElementById('checkResult');
   checkForm.addEventListener('submit', function(e){
     e.preventDefault();
@@ -396,7 +470,7 @@
     });
     if(keys.length === 3){
       qResult.appendChild(document.createElement('br'));
-      qResult.appendChild(document.createTextNode('That is all we need. If this sounds useful, the $20 refundable deposit at the top of the page is how firms hold a spot.'));
+      qResult.appendChild(document.createTextNode('That is the problem CrewDue watches for you. The $20 refundable deposit below is how firms hold a pilot spot.'));
     }
   }
 })();
