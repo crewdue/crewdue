@@ -12,8 +12,8 @@
   header{ background:var(--green-dark); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
   header .brand{ font-size:20px; font-weight:700; letter-spacing:.2px; }
   header button{ background:transparent; color:#fff; border:1px solid #ffffff66; border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer; }
-  main{ max-width:980px; margin:0 auto; padding:22px 16px 60px; }
-  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin:0 0 16px; box-shadow:0 1px 3px rgba(20,60,45,.06); }
+  main{ max-width:1440px; margin:0 auto; padding:26px 28px 60px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin:0 0 16px; box-shadow:0 1px 3px rgba(20,60,45,.06); }
   h1{ font-size:24px; margin:0 0 6px; }
   h2{ font-size:16px; margin:0 0 8px; }
   p{ line-height:1.5; }
@@ -44,7 +44,7 @@
   .tabs button.on{ background:var(--green); color:#fff; }
   .welcome{ margin:0 0 18px; }
   .welcome .date{ color:var(--mut); font-size:14px; }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px; align-items:start; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px; align-items:start; }
   .grid .card{ margin:0; }
   .big{ font-size:36px; font-weight:800; line-height:1.05; }
   .big.out{ color:var(--red); } .big.low{ color:var(--amber); } .big.in{ color:var(--green-dark); }
@@ -54,9 +54,15 @@
   .kv:last-child{ border-bottom:none; }
   .kv .k{ color:var(--mut); }
   .kv .v{ font-weight:600; text-align:right; }
+  .cal{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; font-size:13px; margin-top:6px; }
+  .cal .hd{ color:var(--mut); font-weight:700; padding:4px 0; }
+  .cal .d{ padding:6px 0; border-radius:8px; }
+  .cal .mark{ background:var(--green-soft); font-weight:700; }
+  .cal .mark.out{ background:var(--red-soft); color:var(--red); }
   .err{ color:var(--red); font-size:14px; margin-top:8px; }
   .ok{ color:var(--green-dark); font-size:14px; margin-top:8px; }
   .hidden{ display:none; }
+  @media (max-width:480px){ main{ padding:18px 14px 50px; } .grid{ grid-template-columns:1fr; } }
   @media print{ header, .tabs, .noprint{ display:none; } body{ background:#fff; } .card{ border:none; padding:0; box-shadow:none; } }
 </style>
 </head>
@@ -125,6 +131,12 @@
         <h2>Renewed? Put the new end date</h2>
         <label>New end date</label>
         <input id="d-date" type="date">
+        <div id="d-veh-wrap" class="hidden">
+          <div class="row">
+            <div><label>Plate</label><input id="d-plate" type="text"></div>
+            <div><label>VIN</label><input id="d-vin" type="text"></div>
+          </div>
+        </div>
         <div id="d-hours-wrap" class="hidden">
           <div class="row">
             <div><label>Training hours logged</label><input id="d-hours-logged" type="number" min="0" step="0.5"></div>
@@ -188,6 +200,12 @@
         <input id="p-label" type="text" placeholder="Liability and workers comp">
         <label>End date printed on the paper</label>
         <input id="p-date" type="date">
+        <div id="p-veh-wrap" class="hidden">
+          <div class="row">
+            <div><label>Plate</label><input id="p-plate" type="text"></div>
+            <div><label>VIN</label><input id="p-vin" type="text"></div>
+          </div>
+        </div>
         <div id="p-hours-wrap" class="hidden">
           <div class="row">
             <div><label>Training hours logged</label><input id="p-hours-logged" type="number" min="0" step="0.5"></div>
@@ -218,9 +236,10 @@ const SUPABASE_URL = "https://xwknfnsqfsymmjlzgcat.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3a25mbnNxZnN5bW1qbHpnY2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NTcwMTgsImV4cCI6MjExMTAzMzAxOH0.A6LvosJHT-5Ax-z4XKqo2Pj-X9Ilj1PhgT9bDTRTF_c";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = id => document.getElementById(id);
-let firm = null, workers = [], subs = [], papers = [], reqs = [], openId = null;
+let firm = null, workers = [], subs = [], papers = [], reqs = [], chases = [], openId = null;
 
 const SUB_KINDS = ["Workers comp", "Liability insurance", "Vehicle insurance"];
+const VEH_KINDS = ["Vehicle insurance", "Vehicle registration"];
 
 function daysLeft(d){
   if(!d) return null;
@@ -245,6 +264,13 @@ function holderName(p){
   return firm ? firm.company_name : "My firm";
 }
 function esc(s){ return (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function chasesForPaper(p){ return chases.filter(c => c.paper_id === p.id); }
+function chasesForMissing(subId, kind){ return chases.filter(c => !c.paper_id && c.sub_id === subId && c.paper_kind === kind); }
+function chaseLine(list){
+  if(!list.length) return "Not chased yet";
+  const last = list[list.length - 1];
+  return "Chased " + list.length + (list.length === 1 ? " time" : " times") + " · last " + fmtDate(last.sent_on) + " by " + String(last.channel || "").toLowerCase();
+}
 
 async function loadAll(){
   const uid = (await sb.auth.getUser()).data.user.id;
@@ -253,17 +279,20 @@ async function loadAll(){
   subs = (await sb.from("subs").select("*").order("company_name")).data || [];
   papers = (await sb.from("papers").select("*").order("end_date")).data || [];
   reqs = (await sb.from("sub_requirements").select("*")).data || [];
+  chases = (await sb.from("chases").select("*").order("sent_on")).data || [];
   render();
 }
 
-function paperRow(p, showHolder){
+function paperRow(p, showHolder, showChase){
   const st = statusFor(p);
   const dl = daysLeft(p.end_date);
   const when = p.end_date ? (dl < 0 ? "Ended " + fmtDate(p.end_date) : "Ends " + fmtDate(p.end_date)) : "No date yet";
   return '<div class="paper tap" data-open="' + p.id + '"><div>' +
     (showHolder ? '<strong>' + esc(holderName(p)) + '</strong> · ' : '<strong>' + esc(p.kind) + '</strong> · ') +
     esc(showHolder ? p.kind : (p.label || "")) +
-    '<br><span class="mut">' + when + '</span></div>' +
+    '<br><span class="mut">' + when + '</span>' +
+    (showChase ? '<br><span class="mut">' + chaseLine(chasesForPaper(p)) + '</span>' : '') +
+    '</div>' +
     '<div style="display:flex;align-items:center"><span class="chip ' + st.cls + '">' + st.word + '</span><span class="chev">&rsaquo;</span></div></div>';
 }
 function missingList(){
@@ -278,6 +307,35 @@ function missingList(){
 function cardShell(title, bigHtml, subText, inner){
   return '<div class="card"><div class="cardhead"><div><h2>' + title + '</h2><div class="sub">' + subText + '</div></div>' + bigHtml + '</div>' + inner + '</div>';
 }
+function calendarCard(){
+  const now = new Date(); const y = now.getFullYear(), mo = now.getMonth();
+  const startDay = new Date(y, mo, 1).getDay();
+  const daysIn = new Date(y, mo + 1, 0).getDate();
+  const byDay = {};
+  papers.forEach(p => {
+    if(!p.end_date) return;
+    const d = new Date(p.end_date + "T00:00:00");
+    if(d.getFullYear() === y && d.getMonth() === mo){ (byDay[d.getDate()] = byDay[d.getDate()] || []).push(p); }
+  });
+  let cells = ["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => '<div class="hd">' + d + '</div>').join("");
+  for(let i = 0; i < startDay; i++) cells += "<div></div>";
+  for(let d = 1; d <= daysIn; d++){
+    const list = byDay[d];
+    let cls = "d";
+    if(list) cls += statusFor(list[0]).word === "Expired" ? " mark out" : " mark";
+    cells += '<div class="' + cls + '">' + d + "</div>";
+  }
+  const monthList = papers.filter(p => {
+    if(!p.end_date) return false;
+    const d = new Date(p.end_date + "T00:00:00");
+    return d.getFullYear() === y && d.getMonth() === mo;
+  }).sort((a,b) => a.end_date < b.end_date ? -1 : 1);
+  const inner = '<div class="cal">' + cells + "</div>" +
+    (monthList.length ? monthList.map(p => paperRow(p, true, false)).join("") : '<p class="mut" style="margin-top:10px">No end dates this month.</p>');
+  const next30 = papers.filter(p => { const dl = daysLeft(p.end_date); return dl !== null && dl >= 0 && dl <= 30; }).length;
+  const monthName = now.toLocaleDateString("en-US",{month:"long", year:"numeric"});
+  return cardShell("Dates calendar", '<div class="big in">' + next30 + '</div>', monthName + " · the number counts papers ending in the next 30 days", inner);
+}
 
 function render(){
   $("dash-title").textContent = firm ? "Welcome back, " + firm.company_name : "Welcome back";
@@ -288,12 +346,9 @@ function render(){
   const inP = papers.filter(p => statusFor(p).word === "In");
   const needsCount = expired.length + missing.length;
 
-  let needsInner = expired.map(p => paperRow(p, true)).join("");
-  needsInner += missing.map(m => '<div class="paper"><div><strong>' + esc(m.sub ? m.sub.company_name : "Sub") + '</strong> · ' + esc(m.kind) + '<br><span class="mut">Not sent yet</span></div><span class="chip need">Still needed</span></div>').join("");
+  let needsInner = expired.map(p => paperRow(p, true, true)).join("");
+  needsInner += missing.map(m => '<div class="paper"><div><strong>' + esc(m.sub ? m.sub.company_name : "Sub") + '</strong> · ' + esc(m.kind) + '<br><span class="mut">Not sent yet</span><br><span class="mut">' + chaseLine(chasesForMissing(m.sub ? m.sub.id : null, m.kind)) + '</span></div><span class="chip need">Still needed</span></div>').join("");
   if(!needsInner) needsInner = '<p class="mut">Nothing needs you. All clear.</p>';
-
-  const byDate = [...papers].filter(p => p.end_date).sort((a,b) => a.end_date < b.end_date ? -1 : 1).slice(0,5);
-  const comingInner = byDate.length ? byDate.map(p => paperRow(p, true)).join("") : '<p class="mut">No dates yet.</p>';
 
   const workersInner = workers.length ? workers.map(w => {
     const lic = papers.find(p => p.holder_type === "worker" && p.worker_id === w.id && p.kind === "Worker license");
@@ -311,10 +366,10 @@ function render(){
   }).join("") : '<p class="mut">No subs yet.</p>';
 
   $("dash-grid").innerHTML =
-    cardShell("Needs you", '<div class="big out">' + needsCount + '</div>', "Expired papers and papers still needed", needsInner) +
-    cardShell("Running low", '<div class="big low">' + low.length + '</div>', "Ending in the next 60 days", low.length ? low.map(p => paperRow(p, true)).join("") : '<p class="mut">Nothing running low.</p>') +
-    cardShell("Coming up", '<div class="big in">' + papers.length + '</div>', "Next end dates, soonest first", comingInner) +
-    cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Papers with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true)).join("") : '<p class="mut">None yet.</p>') +
+    cardShell("Needs you", '<div class="big out">' + needsCount + '</div>', "Expired papers and papers still needed, with the chasing so far", needsInner) +
+    cardShell("Running low", '<div class="big low">' + low.length + '</div>', "Ending in the next 60 days", low.length ? low.map(p => paperRow(p, true, true)).join("") : '<p class="mut">Nothing running low.</p>') +
+    calendarCard() +
+    cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Papers with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true, false)).join("") : '<p class="mut">None yet.</p>') +
     cardShell("Workers", '<div class="big in">' + workers.length + '</div>', "Tap a worker to open their license", workersInner) +
     cardShell("Subs", '<div class="big in">' + subs.length + '</div>', "Papers in against papers needed", subsInner);
   $("tab-dash").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openPaper(el.dataset.open)));
@@ -339,11 +394,14 @@ function renderDetail(p){
   $("d-title").textContent = p.kind + (p.label ? " — " + p.label : "");
   let h = "";
   h += kv("Belongs to", esc(holderName(p)));
-  h += kv("Kind", esc(p.kind));
+  h += kv("Who they are", p.holder_type === "firm" ? "Your firm" : p.holder_type === "worker" ? "Worker" : "Subcontractor");
+  h += kv("Type", esc(p.kind));
   if(p.label) h += kv("Label", esc(p.label));
   h += kv("Ends", fmtDate(p.end_date));
   h += kv("Days left", dl === null ? "—" : (dl < 0 ? Math.abs(dl) + " days ago" : dl + " days"));
   h += kv("Status", st.word);
+  if(p.plate) h += kv("Plate", esc(p.plate));
+  if(p.vin) h += kv("VIN", esc(p.vin));
   if(p.holder_type === "worker"){
     const w = workers.find(x => x.id === p.worker_id);
     if(w && w.role) h += kv("Worker role", esc(w.role));
@@ -358,8 +416,15 @@ function renderDetail(p){
       if(s.trade) h += kv("Sub trade", esc(s.trade));
     }
   }
+  const cl = chasesForPaper(p);
+  h += '<h2 style="margin-top:18px">Chasing</h2>';
+  h += kv("Times chased", String(cl.length));
+  cl.forEach(c => { h += kv(fmtDate(c.sent_on), esc(c.channel) + (c.sent_to ? " to " + esc(c.sent_to) : "")); });
+  if(!cl.length) h += '<p class="mut">Not chased yet. Every reminder CrewDue sends for this paper lands here.</p>';
   $("d-body").innerHTML = h;
   $("d-date").value = p.end_date || "";
+  $("d-veh-wrap").classList.toggle("hidden", !VEH_KINDS.includes(p.kind));
+  if(VEH_KINDS.includes(p.kind)){ $("d-plate").value = p.plate || ""; $("d-vin").value = p.vin || ""; }
   $("d-hours-wrap").classList.toggle("hidden", p.kind !== "Worker license");
   if(p.kind === "Worker license"){ $("d-hours-logged").value = p.hours_logged ?? ""; $("d-hours-needed").value = p.hours_needed ?? ""; }
 }
@@ -368,6 +433,10 @@ $("btn-save-detail").addEventListener("click", async () => {
   const p = papers.find(x => x.id === openId);
   if(!p) return;
   const upd = { end_date: $("d-date").value || null };
+  if(VEH_KINDS.includes(p.kind)){
+    upd.plate = $("d-plate").value.trim() || null;
+    upd.vin = $("d-vin").value.trim() || null;
+  }
   if(p.kind === "Worker license"){
     upd.hours_logged = $("d-hours-logged").value ? Number($("d-hours-logged").value) : null;
     upd.hours_needed = $("d-hours-needed").value ? Number($("d-hours-needed").value) : null;
@@ -473,18 +542,22 @@ $("p-holder").addEventListener("change", () => {
 });
 $("p-kind").addEventListener("change", () => {
   $("p-hours-wrap").classList.toggle("hidden", $("p-kind").value !== "Worker license");
+  $("p-veh-wrap").classList.toggle("hidden", !VEH_KINDS.includes($("p-kind").value));
 });
 $("btn-paper").addEventListener("click", async () => {
   const holder = $("p-holder").value;
-  const row = { firm_id: firm.id, kind: $("p-kind").value, holder_type: holder,
+  const kind = $("p-kind").value;
+  const row = { firm_id: firm.id, kind: kind, holder_type: holder,
     label: $("p-label").value.trim(), end_date: $("p-date").value || null,
     worker_id: holder === "worker" ? $("p-worker").value : null,
     sub_id: holder === "sub" ? $("p-sub").value : null,
+    plate: VEH_KINDS.includes(kind) ? ($("p-plate").value.trim() || null) : null,
+    vin: VEH_KINDS.includes(kind) ? ($("p-vin").value.trim() || null) : null,
     hours_logged: $("p-hours-logged").value ? Number($("p-hours-logged").value) : null,
     hours_needed: $("p-hours-needed").value ? Number($("p-hours-needed").value) : null };
   const { error } = await sb.from("papers").insert(row);
   $("p-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Paper added and watched.</p>';
-  if(!error){ $("p-label").value = ""; $("p-date").value = ""; await loadAll(); }
+  if(!error){ $("p-label").value = ""; $("p-date").value = ""; $("p-plate").value = ""; $("p-vin").value = ""; await loadAll(); }
 });
 
 $("btn-sample").addEventListener("click", async () => {
@@ -495,13 +568,25 @@ $("btn-sample").addEventListener("click", async () => {
   const s2 = (await sb.from("subs").insert({ firm_id: firm.id, company_name: "Diaz Electric LLC", contact_name: "Ana Diaz", trade: "Electrical", phone: "555-0117", email: "ana@example.com" }).select().single()).data;
   if(s1){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s1.id, paper_kind: "Workers comp" }); await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s1.id, paper_kind: "Liability insurance" }); }
   if(s2){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s2.id, paper_kind: "Workers comp" }); }
-  await sb.from("papers").insert([
+  const addedPapers = (await sb.from("papers").insert([
     { firm_id: firm.id, kind: "Firm license", holder_type: "firm", label: "Contractor license", end_date: inDays(240) },
     { firm_id: firm.id, kind: "Firm insurance", holder_type: "firm", label: "Workers comp", end_date: inDays(45) },
-    { firm_id: firm.id, kind: "Vehicle insurance", holder_type: "firm", label: "Truck 2", end_date: inDays(-6) },
+    { firm_id: firm.id, kind: "Vehicle insurance", holder_type: "firm", label: "Truck 2", end_date: inDays(-6), plate: "7ABC123", vin: "1FT8W3BT5KEC12345" },
     { firm_id: firm.id, kind: "Sub COI", holder_type: "sub", sub_id: s1 ? s1.id : null, label: "Liability and workers comp", end_date: inDays(180) },
     { firm_id: firm.id, kind: "Worker license", holder_type: "worker", worker_id: w1 ? w1.id : null, label: "Journeyman license", end_date: inDays(120), hours_logged: 16, hours_needed: 32 }
-  ]);
+  ]).select()).data || [];
+  const veh = addedPapers.find(p => p.kind === "Vehicle insurance");
+  const chaseRows = [];
+  if(veh){
+    chaseRows.push({ firm_id: firm.id, paper_id: veh.id, channel: "Email", sent_to: "office@testfirm.com", sent_on: inDays(-5) });
+    chaseRows.push({ firm_id: firm.id, paper_id: veh.id, channel: "Text", sent_to: "555-0134", sent_on: inDays(-2) });
+  }
+  if(s2){
+    chaseRows.push({ firm_id: firm.id, sub_id: s2.id, paper_kind: "Workers comp", channel: "Email", sent_to: "ana@example.com", sent_on: inDays(-7) });
+    chaseRows.push({ firm_id: firm.id, sub_id: s2.id, paper_kind: "Workers comp", channel: "Text", sent_to: "555-0117", sent_on: inDays(-4) });
+    chaseRows.push({ firm_id: firm.id, sub_id: s2.id, paper_kind: "Workers comp", channel: "Email", sent_to: "ana@example.com", sent_on: inDays(-1) });
+  }
+  if(chaseRows.length) await sb.from("chases").insert(chaseRows);
   await loadAll();
 });
 
