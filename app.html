@@ -330,6 +330,7 @@ function openPaper(id){
   const p = papers.find(x => x.id === id);
   if(!p) return;
   showTab("detail");
+  $("d-msg").innerHTML = "";
   renderDetail(p);
 }
 function renderDetail(p){
@@ -361,7 +362,6 @@ function renderDetail(p){
   $("d-date").value = p.end_date || "";
   $("d-hours-wrap").classList.toggle("hidden", p.kind !== "Worker license");
   if(p.kind === "Worker license"){ $("d-hours-logged").value = p.hours_logged ?? ""; $("d-hours-needed").value = p.hours_needed ?? ""; }
-  $("d-msg").innerHTML = "";
 }
 $("btn-back").addEventListener("click", () => { openId = null; showTab("dash"); });
 $("btn-save-detail").addEventListener("click", async () => {
@@ -376,7 +376,6 @@ $("btn-save-detail").addEventListener("click", async () => {
   $("d-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Saved.</p>';
   if(!error) await loadAll();
 });
-
 $("btn-delete-detail").addEventListener("click", async () => {
   const p = papers.find(x => x.id === openId);
   if(!p) return;
@@ -423,7 +422,6 @@ $("btn-signin").addEventListener("click", async () => {
   if(error){ $("auth-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
   enterApp();
 });
-
 $("btn-signup").addEventListener("click", async () => {
   $("auth-msg").innerHTML = "";
   const company = $("auth-company").value.trim();
@@ -468,7 +466,6 @@ $("btn-sub").addEventListener("click", async () => {
   document.querySelectorAll(".s-kind").forEach(c => c.checked = false);
   await loadAll();
 });
-
 $("p-holder").addEventListener("change", () => {
   const v = $("p-holder").value;
   $("p-worker-wrap").classList.toggle("hidden", v !== "worker");
