@@ -6,42 +6,58 @@
 <title>CrewDue App</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root{ --green:#1d6b4f; --green-dark:#14503a; --amber:#b97a0c; --red:#b3261e; --ink:#1a1a1a; --mut:#5a5a5a; --line:#ddd; --bg:#f7f7f4; --card:#fff; }
+  :root{ --green:#1d6b4f; --green-dark:#14503a; --green-soft:#e8f3ee; --amber:#b97a0c; --amber-soft:#fdf3e0; --red:#b3261e; --red-soft:#fdecea; --ink:#1a1a1a; --mut:#5a5a5a; --line:#e2e2dc; --bg:#f4f5f1; --card:#fff; }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
   header{ background:var(--green-dark); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
   header .brand{ font-size:20px; font-weight:700; letter-spacing:.2px; }
   header button{ background:transparent; color:#fff; border:1px solid #ffffff66; border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer; }
-  main{ max-width:880px; margin:0 auto; padding:20px 16px 60px; }
-  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:0 0 16px; }
-  h1{ font-size:24px; margin:0 0 8px; }
-  h2{ font-size:18px; margin:0 0 10px; }
+  main{ max-width:980px; margin:0 auto; padding:22px 16px 60px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin:0 0 16px; box-shadow:0 1px 3px rgba(20,60,45,.06); }
+  h1{ font-size:24px; margin:0 0 6px; }
+  h2{ font-size:16px; margin:0 0 8px; }
   p{ line-height:1.5; }
   .mut{ color:var(--mut); font-size:14px; }
   label{ display:block; font-size:14px; font-weight:600; margin:12px 0 4px; }
   input, select{ width:100%; padding:10px; font-size:16px; border:1px solid #bbb; border-radius:8px; background:#fff; }
   .btn{ display:inline-block; background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px 20px; font-size:16px; font-weight:700; cursor:pointer; margin-top:14px; }
   .btn.secondary{ background:#fff; color:var(--green-dark); border:2px solid var(--green); }
+  .btn.danger{ background:#fff; color:var(--red); border:2px solid var(--red); }
   .btn.small{ padding:8px 14px; font-size:14px; margin-top:8px; }
   .row{ display:flex; gap:10px; flex-wrap:wrap; }
   .row > div{ flex:1; min-width:150px; }
   .chip{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700; border:1.5px solid; white-space:nowrap; }
-  .chip.in{ color:var(--green-dark); border-color:var(--green); background:#e8f3ee; }
-  .chip.low{ color:var(--amber); border-color:var(--amber); background:#fdf3e0; }
-  .chip.out{ color:var(--red); border-color:var(--red); background:#fdecea; }
+  .chip.in{ color:var(--green-dark); border-color:var(--green); background:var(--green-soft); }
+  .chip.low{ color:var(--amber); border-color:var(--amber); background:var(--amber-soft); }
+  .chip.out{ color:var(--red); border-color:var(--red); background:var(--red-soft); }
   .chip.need{ color:var(--amber); border-color:var(--amber); background:#fff; }
   table{ width:100%; border-collapse:collapse; font-size:14px; }
   th, td{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
   th{ font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--mut); }
   .paper{ display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
   .paper:last-child{ border-bottom:none; }
-  .tabs{ display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
+  .paper.tap{ cursor:pointer; border-radius:8px; }
+  .paper.tap:hover{ background:#f2f6f3; }
+  .chev{ color:var(--mut); font-size:18px; padding-left:6px; }
+  .tabs{ display:flex; gap:8px; margin:0 0 18px; flex-wrap:wrap; }
   .tabs button{ padding:9px 16px; border-radius:999px; border:1.5px solid var(--green); background:#fff; color:var(--green-dark); font-size:15px; font-weight:700; cursor:pointer; }
   .tabs button.on{ background:var(--green); color:#fff; }
+  .welcome{ margin:0 0 18px; }
+  .welcome .date{ color:var(--mut); font-size:14px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px; align-items:start; }
+  .grid .card{ margin:0; }
+  .big{ font-size:36px; font-weight:800; line-height:1.05; }
+  .big.out{ color:var(--red); } .big.low{ color:var(--amber); } .big.in{ color:var(--green-dark); }
+  .cardhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .cardhead .sub{ color:var(--mut); font-size:13px; margin-top:2px; }
+  .kv{ display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .kv:last-child{ border-bottom:none; }
+  .kv .k{ color:var(--mut); }
+  .kv .v{ font-weight:600; text-align:right; }
   .err{ color:var(--red); font-size:14px; margin-top:8px; }
   .ok{ color:var(--green-dark); font-size:14px; margin-top:8px; }
   .hidden{ display:none; }
-  @media print{ header, .tabs, .noprint{ display:none; } body{ background:#fff; } .card{ border:none; padding:0; } }
+  @media print{ header, .tabs, .noprint{ display:none; } body{ background:#fff; } .card{ border:none; padding:0; box-shadow:none; } }
 </style>
 </head>
 <body>
@@ -81,18 +97,46 @@
   </section>
 
   <section id="view-app" class="hidden">
-    <div class="tabs">
-      <button data-tab="dash" class="on">Dashboard</button>
+    <div class="tabs" id="main-tabs">
+      <button data-tab="dash" class="on">Home</button>
       <button data-tab="add">Add</button>
       <button data-tab="report">Report</button>
     </div>
 
     <div id="tab-dash">
-      <div class="card">
-        <h2 id="dash-title">What CrewDue is watching</h2>
-        <div id="dash-list"></div>
+      <div class="welcome">
+        <h1 id="dash-title">Welcome back</h1>
+        <div class="date" id="dash-date"></div>
+      </div>
+      <div class="grid" id="dash-grid"></div>
+      <div style="margin-top:16px">
         <button class="btn secondary small noprint" id="btn-sample">Load sample data</button>
-        <p class="mut">Sample data is made up, so you can see how it works.</p>
+        <p class="mut">Sample data is made up, so you can see how it works. Tap any line in any card to open that paper.</p>
+      </div>
+    </div>
+
+    <div id="tab-detail" class="hidden">
+      <button class="btn secondary small" id="btn-back">&larr; Back</button>
+      <div class="card" style="margin-top:12px">
+        <h2 id="d-title">Paper</h2>
+        <div id="d-body"></div>
+      </div>
+      <div class="card">
+        <h2>Renewed? Put the new end date</h2>
+        <label>New end date</label>
+        <input id="d-date" type="date">
+        <div id="d-hours-wrap" class="hidden">
+          <div class="row">
+            <div><label>Training hours logged</label><input id="d-hours-logged" type="number" min="0" step="0.5"></div>
+            <div><label>Hours needed</label><input id="d-hours-needed" type="number" min="0" step="0.5"></div>
+          </div>
+        </div>
+        <button class="btn small" id="btn-save-detail">Save changes</button>
+        <div id="d-msg"></div>
+      </div>
+      <div class="card">
+        <button class="btn danger small" id="btn-delete-detail">Delete this paper</button>
+        <p class="mut">The paper itself, the photo or file, will live on this page once uploads are built in Stage 2.</p>
       </div>
     </div>
 
@@ -174,7 +218,7 @@ const SUPABASE_URL = "https://xwknfnsqfsymmjlzgcat.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3a25mbnNxZnN5bW1qbHpnY2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NTcwMTgsImV4cCI6MjExMTAzMzAxOH0.A6LvosJHT-5Ax-z4XKqo2Pj-X9Ilj1PhgT9bDTRTF_c";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = id => document.getElementById(id);
-let firm = null, workers = [], subs = [], papers = [], reqs = [];
+let firm = null, workers = [], subs = [], papers = [], reqs = [], openId = null;
 
 const SUB_KINDS = ["Workers comp", "Liability insurance", "Vehicle insurance"];
 
@@ -212,28 +256,137 @@ async function loadAll(){
   render();
 }
 
+function paperRow(p, showHolder){
+  const st = statusFor(p);
+  const dl = daysLeft(p.end_date);
+  const when = p.end_date ? (dl < 0 ? "Ended " + fmtDate(p.end_date) : "Ends " + fmtDate(p.end_date)) : "No date yet";
+  return '<div class="paper tap" data-open="' + p.id + '"><div>' +
+    (showHolder ? '<strong>' + esc(holderName(p)) + '</strong> · ' : '<strong>' + esc(p.kind) + '</strong> · ') +
+    esc(showHolder ? p.kind : (p.label || "")) +
+    '<br><span class="mut">' + when + '</span></div>' +
+    '<div style="display:flex;align-items:center"><span class="chip ' + st.cls + '">' + st.word + '</span><span class="chev">&rsaquo;</span></div></div>';
+}
+function missingList(){
+  const out = [];
+  reqs.forEach(r => {
+    const s = subs.find(x => x.id === r.sub_id);
+    const has = papers.some(p => p.sub_id === r.sub_id && (p.kind === "Sub COI" || p.kind === r.paper_kind));
+    if(!has) out.push({sub: s, kind: r.paper_kind});
+  });
+  return out;
+}
+function cardShell(title, bigHtml, subText, inner){
+  return '<div class="card"><div class="cardhead"><div><h2>' + title + '</h2><div class="sub">' + subText + '</div></div>' + bigHtml + '</div>' + inner + '</div>';
+}
+
 function render(){
-  $("dash-title").textContent = firm ? firm.company_name + ": what CrewDue is watching" : "What CrewDue is watching";
-  const list = $("dash-list");
-  if(!papers.length){ list.innerHTML = '<p class="mut">Nothing here yet. Add a paper, or load the sample data.</p>'; }
-  else{
-    list.innerHTML = papers.map(p => {
-      const st = statusFor(p);
-      let extra = "";
-      if(p.kind === "Worker license" && p.hours_needed){
-        const owed = Math.max(0, (p.hours_needed||0) - (p.hours_logged||0));
-        extra = "<br><span class='mut'>Training hours: " + (p.hours_logged||0) + " of " + p.hours_needed + " logged, " + owed + " still owed</span>";
-      }
-      return '<div class="paper"><div><strong>' + esc(holderName(p)) + '</strong> · ' + esc(p.kind) +
-        (p.label ? '<br><span class="mut">' + esc(p.label) + '</span>' : '') + extra +
-        '<br><span class="mut">Ends ' + fmtDate(p.end_date) + '</span></div>' +
-        '<span class="chip ' + st.cls + '">' + st.word + '</span></div>';
-    }).join("");
-  }
+  $("dash-title").textContent = firm ? "Welcome back, " + firm.company_name : "Welcome back";
+  $("dash-date").textContent = new Date().toLocaleDateString("en-US",{weekday:"long", month:"long", day:"numeric", year:"numeric"});
+  const missing = missingList();
+  const expired = papers.filter(p => statusFor(p).word === "Expired");
+  const low = papers.filter(p => statusFor(p).word === "Running low");
+  const inP = papers.filter(p => statusFor(p).word === "In");
+  const needsCount = expired.length + missing.length;
+
+  let needsInner = expired.map(p => paperRow(p, true)).join("");
+  needsInner += missing.map(m => '<div class="paper"><div><strong>' + esc(m.sub ? m.sub.company_name : "Sub") + '</strong> · ' + esc(m.kind) + '<br><span class="mut">Not sent yet</span></div><span class="chip need">Still needed</span></div>').join("");
+  if(!needsInner) needsInner = '<p class="mut">Nothing needs you. All clear.</p>';
+
+  const byDate = [...papers].filter(p => p.end_date).sort((a,b) => a.end_date < b.end_date ? -1 : 1).slice(0,5);
+  const comingInner = byDate.length ? byDate.map(p => paperRow(p, true)).join("") : '<p class="mut">No dates yet.</p>';
+
+  const workersInner = workers.length ? workers.map(w => {
+    const lic = papers.find(p => p.holder_type === "worker" && p.worker_id === w.id && p.kind === "Worker license");
+    if(lic){ const st = statusFor(lic); return '<div class="paper tap" data-open="' + lic.id + '"><div><strong>' + esc(w.name) + '</strong><br><span class="mut">' + esc(w.role || "Worker") + ' · license ends ' + fmtDate(lic.end_date) + '</span></div><div style="display:flex;align-items:center"><span class="chip ' + st.cls + '">' + st.word + '</span><span class="chev">&rsaquo;</span></div></div>'; }
+    return '<div class="paper"><div><strong>' + esc(w.name) + '</strong><br><span class="mut">' + esc(w.role || "Worker") + '</span></div><span class="chip need">No license on file</span></div>';
+  }).join("") : '<p class="mut">No workers yet.</p>';
+
+  const subsInner = subs.length ? subs.map(s => {
+    const mine = papers.filter(p => p.holder_type === "sub" && p.sub_id === s.id);
+    const need = reqs.filter(r => r.sub_id === s.id).length;
+    const first = mine[0];
+    const label = '<strong>' + esc(s.company_name) + '</strong><br><span class="mut">' + mine.length + ' of ' + Math.max(need, mine.length) + ' papers in</span>';
+    if(first) return '<div class="paper tap" data-open="' + first.id + '"><div>' + label + '</div><div style="display:flex;align-items:center"><span class="chip ' + statusFor(first).cls + '">' + statusFor(first).word + '</span><span class="chev">&rsaquo;</span></div></div>';
+    return '<div class="paper"><div>' + label + '</div><span class="chip need">Still needed</span></div>';
+  }).join("") : '<p class="mut">No subs yet.</p>';
+
+  $("dash-grid").innerHTML =
+    cardShell("Needs you", '<div class="big out">' + needsCount + '</div>', "Expired papers and papers still needed", needsInner) +
+    cardShell("Running low", '<div class="big low">' + low.length + '</div>', "Ending in the next 60 days", low.length ? low.map(p => paperRow(p, true)).join("") : '<p class="mut">Nothing running low.</p>') +
+    cardShell("Coming up", '<div class="big in">' + papers.length + '</div>', "Next end dates, soonest first", comingInner) +
+    cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Papers with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true)).join("") : '<p class="mut">None yet.</p>') +
+    cardShell("Workers", '<div class="big in">' + workers.length + '</div>', "Tap a worker to open their license", workersInner) +
+    cardShell("Subs", '<div class="big in">' + subs.length + '</div>', "Papers in against papers needed", subsInner);
+  $("tab-dash").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openPaper(el.dataset.open)));
   $("p-worker").innerHTML = workers.map(w => '<option value="' + w.id + '">' + esc(w.name) + '</option>').join("");
   $("p-sub").innerHTML = subs.map(s => '<option value="' + s.id + '">' + esc(s.company_name) + '</option>').join("");
   renderReport();
+  if(openId){ const p = papers.find(x => x.id === openId); if(p) renderDetail(p); }
 }
+
+function kv(k, v){ return '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+function openPaper(id){
+  openId = id;
+  const p = papers.find(x => x.id === id);
+  if(!p) return;
+  showTab("detail");
+  renderDetail(p);
+}
+function renderDetail(p){
+  const st = statusFor(p);
+  const dl = daysLeft(p.end_date);
+  $("d-title").textContent = p.kind + (p.label ? " — " + p.label : "");
+  let h = "";
+  h += kv("Belongs to", esc(holderName(p)));
+  h += kv("Kind", esc(p.kind));
+  if(p.label) h += kv("Label", esc(p.label));
+  h += kv("Ends", fmtDate(p.end_date));
+  h += kv("Days left", dl === null ? "—" : (dl < 0 ? Math.abs(dl) + " days ago" : dl + " days"));
+  h += kv("Status", st.word);
+  if(p.holder_type === "worker"){
+    const w = workers.find(x => x.id === p.worker_id);
+    if(w && w.role) h += kv("Worker role", esc(w.role));
+    if(p.hours_needed) h += kv("Training hours", (p.hours_logged||0) + " of " + p.hours_needed + " logged, " + Math.max(0, p.hours_needed - (p.hours_logged||0)) + " still owed");
+  }
+  if(p.holder_type === "sub"){
+    const s = subs.find(x => x.id === p.sub_id);
+    if(s){
+      if(s.contact_name) h += kv("Sub contact", esc(s.contact_name));
+      if(s.phone) h += kv("Sub phone", esc(s.phone));
+      if(s.email) h += kv("Sub email", esc(s.email));
+      if(s.trade) h += kv("Sub trade", esc(s.trade));
+    }
+  }
+  $("d-body").innerHTML = h;
+  $("d-date").value = p.end_date || "";
+  $("d-hours-wrap").classList.toggle("hidden", p.kind !== "Worker license");
+  if(p.kind === "Worker license"){ $("d-hours-logged").value = p.hours_logged ?? ""; $("d-hours-needed").value = p.hours_needed ?? ""; }
+  $("d-msg").innerHTML = "";
+}
+$("btn-back").addEventListener("click", () => { openId = null; showTab("dash"); });
+$("btn-save-detail").addEventListener("click", async () => {
+  const p = papers.find(x => x.id === openId);
+  if(!p) return;
+  const upd = { end_date: $("d-date").value || null };
+  if(p.kind === "Worker license"){
+    upd.hours_logged = $("d-hours-logged").value ? Number($("d-hours-logged").value) : null;
+    upd.hours_needed = $("d-hours-needed").value ? Number($("d-hours-needed").value) : null;
+  }
+  const { error } = await sb.from("papers").update(upd).eq("id", p.id);
+  $("d-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Saved.</p>';
+  if(!error) await loadAll();
+});
+
+$("btn-delete-detail").addEventListener("click", async () => {
+  const p = papers.find(x => x.id === openId);
+  if(!p) return;
+  if(!confirm("Delete this paper? This cannot be undone.")) return;
+  const { error } = await sb.from("papers").delete().eq("id", p.id);
+  if(error){ $("d-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+  openId = null;
+  await loadAll();
+  showTab("dash");
+});
 
 function reportRows(){
   const rows = [];
@@ -241,11 +394,7 @@ function reportRows(){
     const st = statusFor(p);
     rows.push({who: holderName(p), what: p.kind + (p.label ? " — " + p.label : ""), ends: fmtDate(p.end_date), status: st.word});
   });
-  reqs.forEach(r => {
-    const s = subs.find(x => x.id === r.sub_id);
-    const has = papers.some(p => p.sub_id === r.sub_id && (p.kind === "Sub COI" || p.kind === r.paper_kind));
-    if(!has) rows.push({who: s ? s.company_name : "Sub", what: r.paper_kind, ends: "—", status: "Still needed"});
-  });
+  missingList().forEach(m => rows.push({who: m.sub ? m.sub.company_name : "Sub", what: m.kind, ends: "—", status: "Still needed"}));
   return rows;
 }
 function renderReport(){
@@ -255,11 +404,12 @@ function renderReport(){
     rows.map(r => "<tr><td>" + esc(r.who) + "</td><td>" + esc(r.what) + "</td><td style='white-space:nowrap'>" + r.ends + "</td><td>" + r.status + "</td></tr>").join("") + "</table>";
 }
 
-document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
-  document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("on"));
-  b.classList.add("on");
-  ["dash","add","report"].forEach(t => $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
-}));
+function showTab(t){
+  document.querySelectorAll("#main-tabs button").forEach(x => x.classList.toggle("on", x.dataset.tab === t));
+  ["dash","add","report","detail"].forEach(x => $("tab-" + x).classList.toggle("hidden", x !== t));
+  if(t !== "detail") openId = null;
+}
+document.querySelectorAll("#main-tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 $("btn-show-signup").addEventListener("click", () => {
   $("firm-fields").classList.remove("hidden");
@@ -273,6 +423,7 @@ $("btn-signin").addEventListener("click", async () => {
   if(error){ $("auth-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
   enterApp();
 });
+
 $("btn-signup").addEventListener("click", async () => {
   $("auth-msg").innerHTML = "";
   const company = $("auth-company").value.trim();
@@ -317,6 +468,7 @@ $("btn-sub").addEventListener("click", async () => {
   document.querySelectorAll(".s-kind").forEach(c => c.checked = false);
   await loadAll();
 });
+
 $("p-holder").addEventListener("change", () => {
   const v = $("p-holder").value;
   $("p-worker-wrap").classList.toggle("hidden", v !== "worker");
