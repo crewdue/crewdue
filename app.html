@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrewDue App</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --green:#1d6b4f; --green-dark:#14503a; --amber:#b97a0c; --red:#b3261e; --ink:#1a1a1a; --mut:#5a5a5a; --line:#ddd; --bg:#f7f7f4; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--green-dark); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+  header .brand{ font-size:20px; font-weight:700; letter-spacing:.2px; }
+  header button{ background:transparent; color:#fff; border:1px solid #ffffff66; border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer; }
+  main{ max-width:880px; margin:0 auto; padding:20px 16px 60px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:0 0 16px; }
+  h1{ font-size:24px; margin:0 0 8px; }
+  h2{ font-size:18px; margin:0 0 10px; }
+  p{ line-height:1.5; }
+  .mut{ color:var(--mut); font-size:14px; }
+  label{ display:block; font-size:14px; font-weight:600; margin:12px 0 4px; }
+  input, select{ width:100%; padding:10px; font-size:16px; border:1px solid #bbb; border-radius:8px; background:#fff; }
+  .btn{ display:inline-block; background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px 20px; font-size:16px; font-weight:700; cursor:pointer; margin-top:14px; }
+  .btn.secondary{ background:#fff; color:var(--green-dark); border:2px solid var(--green); }
+  .btn.small{ padding:8px 14px; font-size:14px; margin-top:8px; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .row > div{ flex:1; min-width:150px; }
+  .chip{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700; border:1.5px solid; white-space:nowrap; }
+  .chip.in{ color:var(--green-dark); border-color:var(--green); background:#e8f3ee; }
+  .chip.low{ color:var(--amber); border-color:var(--amber); background:#fdf3e0; }
+  .chip.out{ color:var(--red); border-color:var(--red); background:#fdecea; }
+  .chip.need{ color:var(--amber); border-color:var(--amber); background:#fff; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th, td{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--mut); }
+  .paper{ display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .paper:last-child{ border-bottom:none; }
+  .tabs{ display:flex; gap:8px; margin:0 0 16px; flex-wrap:wrap; }
+  .tabs button{ padding:9px 16px; border-radius:999px; border:1.5px solid var(--green); background:#fff; color:var(--green-dark); font-size:15px; font-weight:700; cursor:pointer; }
+  .tabs button.on{ background:var(--green); color:#fff; }
+  .err{ color:var(--red); font-size:14px; margin-top:8px; }
+  .ok{ color:var(--green-dark); font-size:14px; margin-top:8px; }
+  .hidden{ display:none; }
+  @media print{ header, .tabs, .noprint{ display:none; } body{ background:#fff; } .card{ border:none; padding:0; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">CrewDue</div>
+  <button id="signout" class="hidden">Sign out</button>
+</header>
+<main>
+
+  <section id="view-auth">
+    <div class="card">
+      <h1>Your firm account</h1>
+      <p class="mut">Sign in, or start a new account for your firm.</p>
+      <label>Email</label>
+      <input id="auth-email" type="email" autocomplete="email">
+      <label>Password</label>
+      <input id="auth-pass" type="password" autocomplete="current-password">
+      <div id="firm-fields" class="hidden">
+        <label>Company name</label>
+        <input id="auth-company" type="text">
+        <div class="row">
+          <div><label>Trade</label>
+            <select id="auth-trade">
+              <option>General contractor</option><option>Electrical</option><option>HVAC</option>
+              <option>Plumbing</option><option>Roofing</option><option>Other trade</option>
+            </select></div>
+          <div><label>State</label><input id="auth-state" type="text"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div><button class="btn" id="btn-signin" style="width:100%">Sign in</button></div>
+        <div><button class="btn secondary" id="btn-show-signup" style="width:100%">New account</button></div>
+      </div>
+      <button class="btn hidden" id="btn-signup" style="width:100%">Create my firm account</button>
+      <div id="auth-msg"></div>
+    </div>
+  </section>
+
+  <section id="view-app" class="hidden">
+    <div class="tabs">
+      <button data-tab="dash" class="on">Dashboard</button>
+      <button data-tab="add">Add</button>
+      <button data-tab="report">Report</button>
+    </div>
+
+    <div id="tab-dash">
+      <div class="card">
+        <h2 id="dash-title">What CrewDue is watching</h2>
+        <div id="dash-list"></div>
+        <button class="btn secondary small noprint" id="btn-sample">Load sample data</button>
+        <p class="mut">Sample data is made up, so you can see how it works.</p>
+      </div>
+    </div>
+
+    <div id="tab-add" class="hidden">
+      <div class="card">
+        <h2>Add a worker</h2>
+        <label>Name</label><input id="w-name" type="text">
+        <label>Role</label><input id="w-role" type="text" placeholder="Journeyman electrician">
+        <button class="btn small" id="btn-worker">Add worker</button>
+        <div id="w-msg"></div>
+      </div>
+      <div class="card">
+        <h2>Add a sub</h2>
+        <label>Company name</label><input id="s-name" type="text">
+        <div class="row">
+          <div><label>Contact name</label><input id="s-contact" type="text"></div>
+          <div><label>Trade</label><input id="s-trade" type="text"></div>
+        </div>
+        <div class="row">
+          <div><label>Phone</label><input id="s-phone" type="text"></div>
+          <div><label>Email</label><input id="s-email" type="email"></div>
+        </div>
+        <label>Papers this sub must send</label>
+        <div id="s-kinds"></div>
+        <button class="btn small" id="btn-sub">Add sub</button>
+        <div id="s-msg"></div>
+      </div>
+      <div class="card">
+        <h2>Add a paper</h2>
+        <label>What is it?</label>
+        <select id="p-kind">
+          <option value="Sub COI">Sub COI (liability and workers comp)</option>
+          <option value="Worker license">Worker license</option>
+          <option value="Firm license">Firm license</option>
+          <option value="Firm insurance">Firm insurance (liability or workers comp)</option>
+          <option value="Bond">Bond</option>
+          <option value="Vehicle insurance">Vehicle insurance</option>
+          <option value="Vehicle registration">Vehicle registration</option>
+        </select>
+        <label>Whose is it?</label>
+        <select id="p-holder">
+          <option value="firm">My firm</option>
+          <option value="worker">A worker</option>
+          <option value="sub">A sub</option>
+        </select>
+        <div id="p-worker-wrap" class="hidden"><label>Worker</label><select id="p-worker"></select></div>
+        <div id="p-sub-wrap" class="hidden"><label>Sub</label><select id="p-sub"></select></div>
+        <label>Label (what you call it)</label>
+        <input id="p-label" type="text" placeholder="Liability and workers comp">
+        <label>End date printed on the paper</label>
+        <input id="p-date" type="date">
+        <div id="p-hours-wrap" class="hidden">
+          <div class="row">
+            <div><label>Training hours logged</label><input id="p-hours-logged" type="number" min="0" step="0.5"></div>
+            <div><label>Hours needed</label><input id="p-hours-needed" type="number" min="0" step="0.5"></div>
+          </div>
+          <p class="mut">CrewDue holds the hours a worker types in and counts what is still owed. It does not watch hours being earned.</p>
+        </div>
+        <button class="btn small" id="btn-paper">Add paper</button>
+        <div id="p-msg"></div>
+      </div>
+    </div>
+
+    <div id="tab-report" class="hidden">
+      <div class="card">
+        <h2>Report: papers in, papers still needed</h2>
+        <div id="report-table"></div>
+        <div class="row noprint">
+          <div><button class="btn small" id="btn-csv">Download spreadsheet (CSV)</button></div>
+          <div><button class="btn secondary small" id="btn-print">Print or save PDF</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://xwknfnsqfsymmjlzgcat.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3a25mbnNxZnN5bW1qbHpnY2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NTcwMTgsImV4cCI6MjExMTAzMzAxOH0.A6LvosJHT-5Ax-z4XKqo2Pj-X9Ilj1PhgT9bDTRTF_c";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const $ = id => document.getElementById(id);
+let firm = null, workers = [], subs = [], papers = [], reqs = [];
+
+const SUB_KINDS = ["Workers comp", "Liability insurance", "Vehicle insurance"];
+
+function daysLeft(d){
+  if(!d) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const end = new Date(d + "T00:00:00");
+  return Math.round((end - today) / 86400000);
+}
+function statusFor(p){
+  const dl = daysLeft(p.end_date);
+  if(dl === null) return {cls:"need", word:"No date yet"};
+  if(dl < 0) return {cls:"out", word:"Expired"};
+  if(dl <= 60) return {cls:"low", word:"Running low"};
+  return {cls:"in", word:"In"};
+}
+function fmtDate(d){
+  if(!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"});
+}
+function holderName(p){
+  if(p.holder_type === "worker"){ const w = workers.find(x => x.id === p.worker_id); return w ? w.name : "Worker"; }
+  if(p.holder_type === "sub"){ const s = subs.find(x => x.id === p.sub_id); return s ? s.company_name : "Sub"; }
+  return firm ? firm.company_name : "My firm";
+}
+function esc(s){ return (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function loadAll(){
+  const uid = (await sb.auth.getUser()).data.user.id;
+  firm = (await sb.from("firms").select("*").eq("id", uid).single()).data;
+  workers = (await sb.from("workers").select("*").order("name")).data || [];
+  subs = (await sb.from("subs").select("*").order("company_name")).data || [];
+  papers = (await sb.from("papers").select("*").order("end_date")).data || [];
+  reqs = (await sb.from("sub_requirements").select("*")).data || [];
+  render();
+}
+
+function render(){
+  $("dash-title").textContent = firm ? firm.company_name + ": what CrewDue is watching" : "What CrewDue is watching";
+  const list = $("dash-list");
+  if(!papers.length){ list.innerHTML = '<p class="mut">Nothing here yet. Add a paper, or load the sample data.</p>'; }
+  else{
+    list.innerHTML = papers.map(p => {
+      const st = statusFor(p);
+      let extra = "";
+      if(p.kind === "Worker license" && p.hours_needed){
+        const owed = Math.max(0, (p.hours_needed||0) - (p.hours_logged||0));
+        extra = "<br><span class='mut'>Training hours: " + (p.hours_logged||0) + " of " + p.hours_needed + " logged, " + owed + " still owed</span>";
+      }
+      return '<div class="paper"><div><strong>' + esc(holderName(p)) + '</strong> · ' + esc(p.kind) +
+        (p.label ? '<br><span class="mut">' + esc(p.label) + '</span>' : '') + extra +
+        '<br><span class="mut">Ends ' + fmtDate(p.end_date) + '</span></div>' +
+        '<span class="chip ' + st.cls + '">' + st.word + '</span></div>';
+    }).join("");
+  }
+  $("p-worker").innerHTML = workers.map(w => '<option value="' + w.id + '">' + esc(w.name) + '</option>').join("");
+  $("p-sub").innerHTML = subs.map(s => '<option value="' + s.id + '">' + esc(s.company_name) + '</option>').join("");
+  renderReport();
+}
+
+function reportRows(){
+  const rows = [];
+  papers.forEach(p => {
+    const st = statusFor(p);
+    rows.push({who: holderName(p), what: p.kind + (p.label ? " — " + p.label : ""), ends: fmtDate(p.end_date), status: st.word});
+  });
+  reqs.forEach(r => {
+    const s = subs.find(x => x.id === r.sub_id);
+    const has = papers.some(p => p.sub_id === r.sub_id && (p.kind === "Sub COI" || p.kind === r.paper_kind));
+    if(!has) rows.push({who: s ? s.company_name : "Sub", what: r.paper_kind, ends: "—", status: "Still needed"});
+  });
+  return rows;
+}
+function renderReport(){
+  const rows = reportRows();
+  if(!rows.length){ $("report-table").innerHTML = '<p class="mut">Nothing to report yet.</p>'; return; }
+  $("report-table").innerHTML = "<table><tr><th>Name</th><th>Paper</th><th>Ends</th><th>Status</th></tr>" +
+    rows.map(r => "<tr><td>" + esc(r.who) + "</td><td>" + esc(r.what) + "</td><td style='white-space:nowrap'>" + r.ends + "</td><td>" + r.status + "</td></tr>").join("") + "</table>";
+}
+
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("on"));
+  b.classList.add("on");
+  ["dash","add","report"].forEach(t => $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
+}));
+
+$("btn-show-signup").addEventListener("click", () => {
+  $("firm-fields").classList.remove("hidden");
+  $("btn-signup").classList.remove("hidden");
+  $("btn-signin").parentElement.style.display = "none";
+  $("btn-show-signup").parentElement.style.display = "none";
+});
+$("btn-signin").addEventListener("click", async () => {
+  $("auth-msg").innerHTML = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("auth-email").value.trim(), password: $("auth-pass").value });
+  if(error){ $("auth-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+  enterApp();
+});
+$("btn-signup").addEventListener("click", async () => {
+  $("auth-msg").innerHTML = "";
+  const company = $("auth-company").value.trim();
+  if(!company){ $("auth-msg").innerHTML = '<p class="err">Type your company name.</p>'; return; }
+  const { data, error } = await sb.auth.signUp({ email: $("auth-email").value.trim(), password: $("auth-pass").value });
+  if(error){ $("auth-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+  if(!data.session){ $("auth-msg").innerHTML = '<p class="ok">Account made. Check your email to confirm, then sign in.</p>'; return; }
+  const uid = data.user.id;
+  const ins = await sb.from("firms").insert({ id: uid, company_name: company, trade: $("auth-trade").value, state: $("auth-state").value.trim() });
+  if(ins.error){ $("auth-msg").innerHTML = '<p class="err">' + esc(ins.error.message) + '</p>'; return; }
+  enterApp();
+});
+$("signout").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
+
+async function enterApp(){
+  $("view-auth").classList.add("hidden");
+  $("view-app").classList.remove("hidden");
+  $("signout").classList.remove("hidden");
+  await loadAll();
+}
+
+$("s-kinds").innerHTML = SUB_KINDS.map(k =>
+  '<label style="font-weight:400"><input type="checkbox" class="s-kind" value="' + k + '" style="width:auto"> ' + k + '</label>').join("");
+$("btn-worker").addEventListener("click", async () => {
+  const name = $("w-name").value.trim();
+  if(!name){ $("w-msg").innerHTML = '<p class="err">Type the worker name.</p>'; return; }
+  const { error } = await sb.from("workers").insert({ firm_id: firm.id, name, role: $("w-role").value.trim() });
+  $("w-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Worker added.</p>';
+  if(!error){ $("w-name").value = ""; $("w-role").value = ""; await loadAll(); }
+});
+$("btn-sub").addEventListener("click", async () => {
+  const name = $("s-name").value.trim();
+  if(!name){ $("s-msg").innerHTML = '<p class="err">Type the sub company name.</p>'; return; }
+  const { data, error } = await sb.from("subs").insert({ firm_id: firm.id, company_name: name,
+    contact_name: $("s-contact").value.trim(), trade: $("s-trade").value.trim(),
+    phone: $("s-phone").value.trim(), email: $("s-email").value.trim() }).select().single();
+  if(error){ $("s-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+  const kinds = [...document.querySelectorAll(".s-kind:checked")].map(c => c.value);
+  for(const k of kinds){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: data.id, paper_kind: k }); }
+  $("s-msg").innerHTML = '<p class="ok">Sub added.</p>';
+  ["s-name","s-contact","s-trade","s-phone","s-email"].forEach(id => $(id).value = "");
+  document.querySelectorAll(".s-kind").forEach(c => c.checked = false);
+  await loadAll();
+});
+$("p-holder").addEventListener("change", () => {
+  const v = $("p-holder").value;
+  $("p-worker-wrap").classList.toggle("hidden", v !== "worker");
+  $("p-sub-wrap").classList.toggle("hidden", v !== "sub");
+});
+$("p-kind").addEventListener("change", () => {
+  $("p-hours-wrap").classList.toggle("hidden", $("p-kind").value !== "Worker license");
+});
+$("btn-paper").addEventListener("click", async () => {
+  const holder = $("p-holder").value;
+  const row = { firm_id: firm.id, kind: $("p-kind").value, holder_type: holder,
+    label: $("p-label").value.trim(), end_date: $("p-date").value || null,
+    worker_id: holder === "worker" ? $("p-worker").value : null,
+    sub_id: holder === "sub" ? $("p-sub").value : null,
+    hours_logged: $("p-hours-logged").value ? Number($("p-hours-logged").value) : null,
+    hours_needed: $("p-hours-needed").value ? Number($("p-hours-needed").value) : null };
+  const { error } = await sb.from("papers").insert(row);
+  $("p-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Paper added and watched.</p>';
+  if(!error){ $("p-label").value = ""; $("p-date").value = ""; await loadAll(); }
+});
+
+$("btn-sample").addEventListener("click", async () => {
+  const inDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); };
+  const w1 = (await sb.from("workers").insert({ firm_id: firm.id, name: "Mike Torres", role: "Journeyman electrician" }).select().single()).data;
+  await sb.from("workers").insert({ firm_id: firm.id, name: "Sam Lee", role: "Apprentice" });
+  const s1 = (await sb.from("subs").insert({ firm_id: firm.id, company_name: "Garcia Roofing LLC", contact_name: "Luis Garcia", trade: "Roofing", phone: "555-0142", email: "luis@example.com" }).select().single()).data;
+  const s2 = (await sb.from("subs").insert({ firm_id: firm.id, company_name: "Diaz Electric LLC", contact_name: "Ana Diaz", trade: "Electrical", phone: "555-0117", email: "ana@example.com" }).select().single()).data;
+  if(s1){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s1.id, paper_kind: "Workers comp" }); await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s1.id, paper_kind: "Liability insurance" }); }
+  if(s2){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: s2.id, paper_kind: "Workers comp" }); }
+  await sb.from("papers").insert([
+    { firm_id: firm.id, kind: "Firm license", holder_type: "firm", label: "Contractor license", end_date: inDays(240) },
+    { firm_id: firm.id, kind: "Firm insurance", holder_type: "firm", label: "Workers comp", end_date: inDays(45) },
+    { firm_id: firm.id, kind: "Vehicle insurance", holder_type: "firm", label: "Truck 2", end_date: inDays(-6) },
+    { firm_id: firm.id, kind: "Sub COI", holder_type: "sub", sub_id: s1 ? s1.id : null, label: "Liability and workers comp", end_date: inDays(180) },
+    { firm_id: firm.id, kind: "Worker license", holder_type: "worker", worker_id: w1 ? w1.id : null, label: "Journeyman license", end_date: inDays(120), hours_logged: 16, hours_needed: 32 }
+  ]);
+  await loadAll();
+});
+
+$("btn-csv").addEventListener("click", () => {
+  const rows = reportRows();
+  const csv = "Name,Paper,Ends,Status\n" + rows.map(r => [r.who, r.what, r.ends, r.status].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "crewdue-report.csv"; a.click();
+  URL.revokeObjectURL(a.href);
+});
+$("btn-print").addEventListener("click", () => window.print());
+
+(async () => { const { data } = await sb.auth.getSession(); if(data.session){ enterApp(); } })();
+</script>
+</body>
+</html>
