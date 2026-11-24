@@ -59,6 +59,7 @@
   .cal .d{ padding:6px 0; border-radius:8px; }
   .cal .mark{ background:var(--green-soft); font-weight:700; }
   .cal .mark.out{ background:var(--red-soft); color:var(--red); }
+  .pickbox{ border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:0 0 8px; }
   .err{ color:var(--red); font-size:14px; margin-top:8px; }
   .ok{ color:var(--green-dark); font-size:14px; margin-top:8px; }
   .hidden{ display:none; }
@@ -105,7 +106,7 @@
   <section id="view-app" class="hidden">
     <div class="tabs" id="main-tabs">
       <button data-tab="dash" class="on">Home</button>
-      <button data-tab="add">Add</button>
+      <button data-tab="add">Add new</button>
       <button data-tab="report">Report</button>
     </div>
 
@@ -113,6 +114,7 @@
       <div class="welcome">
         <h1 id="dash-title">Welcome back</h1>
         <div class="date" id="dash-date"></div>
+        <p style="margin-top:12px"><button class="btn" id="btn-goto-add" style="margin-top:0">+ Add new worker</button></p>
       </div>
       <div class="grid" id="dash-grid"></div>
       <div style="margin-top:16px">
@@ -153,31 +155,55 @@
     </div>
 
     <div id="tab-add" class="hidden">
-      <div class="card">
-        <h2>Add a worker</h2>
-        <label>Name</label><input id="w-name" type="text">
-        <label>Role</label><input id="w-role" type="text" placeholder="Journeyman electrician">
-        <button class="btn small" id="btn-worker">Add worker</button>
-        <div id="w-msg"></div>
+      <div id="add-done" class="card hidden">
+        <h2 id="add-done-title">Now chasing</h2>
+        <div id="add-done-body"></div>
+        <div class="row noprint">
+          <div><button class="btn small" id="btn-done-home">See them on the home page</button></div>
+          <div><button class="btn secondary small" id="btn-done-another">Add another</button></div>
+        </div>
       </div>
-      <div class="card">
-        <h2>Add a sub</h2>
-        <label>Company name</label><input id="s-name" type="text">
+
+      <div class="card" id="add-form-card">
+        <h2>Add new worker</h2>
+        <p class="mut">One person at a time. Pick who they are, tick the papers we chase for them, and add their details.</p>
+        <label>Who are you adding?</label>
         <div class="row">
-          <div><label>Contact name</label><input id="s-contact" type="text"></div>
-          <div><label>Trade</label><input id="s-trade" type="text"></div>
+          <div><button class="btn" id="type-employee" style="width:100%;margin-top:0">Employee</button></div>
+          <div><button class="btn secondary" id="type-sub" style="width:100%;margin-top:0">Subcontractor</button></div>
+        </div>
+        <div id="emp-fields">
+          <label>Full name</label><input id="n-name" type="text">
+          <label>Role</label><input id="n-role" type="text" placeholder="Journeyman electrician">
+        </div>
+        <div id="sub-fields" class="hidden">
+          <label>Company name</label><input id="n-company" type="text">
+          <div class="row">
+            <div><label>Contact name</label><input id="n-contact" type="text"></div>
+            <div><label>Trade</label><input id="n-trade" type="text"></div>
+          </div>
         </div>
         <div class="row">
-          <div><label>Phone</label><input id="s-phone" type="text"></div>
-          <div><label>Email</label><input id="s-email" type="email"></div>
+          <div><label>Phone</label><input id="n-phone" type="text"></div>
+          <div><label>Email</label><input id="n-email" type="email"></div>
         </div>
-        <label>Papers this sub must send</label>
-        <div id="s-kinds"></div>
-        <button class="btn small" id="btn-sub">Add sub</button>
-        <div id="s-msg"></div>
+        <label>Papers we chase for them</label>
+        <p class="mut">Tick each paper this person must have. If you already hold one, put its end date and it counts as in. Leave the date blank and we chase it.</p>
+        <div id="n-papers"></div>
+        <div id="n-veh-wrap" class="hidden">
+          <label>Vehicle (for the vehicle papers ticked above)</label>
+          <input id="n-veh-label" type="text" placeholder="Truck 2">
+          <div class="row">
+            <div><label>Plate</label><input id="n-plate" type="text"></div>
+            <div><label>VIN</label><input id="n-vin" type="text"></div>
+          </div>
+        </div>
+        <button class="btn" id="btn-add-person">Add and start chasing</button>
+        <div id="n-msg"></div>
       </div>
+
       <div class="card">
-        <h2>Add a paper</h2>
+        <h2>Add a paper for someone already here</h2>
         <label>What is it?</label>
         <select id="p-kind">
           <option value="Sub COI">Sub COI (liability and workers comp)</option>
@@ -238,8 +264,19 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const $ = id => document.getElementById(id);
 let firm = null, workers = [], subs = [], papers = [], reqs = [], chases = [], openId = null;
 
-const SUB_KINDS = ["Workers comp", "Liability insurance", "Vehicle insurance"];
 const VEH_KINDS = ["Vehicle insurance", "Vehicle registration"];
+const EMP_PAPERS = [
+  { kind: "Worker license", label: "Worker license", hours: true },
+  { kind: "Vehicle insurance", label: "Vehicle insurance", veh: true },
+  { kind: "Vehicle registration", label: "Vehicle registration", veh: true }
+];
+const SUB_PAPERS = [
+  { kind: "Workers comp", label: "Workers comp" },
+  { kind: "Liability insurance", label: "Liability insurance" },
+  { kind: "Vehicle insurance", label: "Vehicle insurance", veh: true },
+  { kind: "Vehicle registration", label: "Vehicle registration", veh: true }
+];
+let addType = "employee";
 
 function daysLeft(d){
   if(!d) return null;
@@ -249,7 +286,7 @@ function daysLeft(d){
 }
 function statusFor(p){
   const dl = daysLeft(p.end_date);
-  if(dl === null) return {cls:"need", word:"No date yet"};
+  if(dl === null) return {cls:"need", word:"Waiting"};
   if(dl < 0) return {cls:"out", word:"Expired"};
   if(dl <= 60) return {cls:"low", word:"Running low"};
   return {cls:"in", word:"In"};
@@ -370,7 +407,7 @@ function render(){
     cardShell("Running low", '<div class="big low">' + low.length + '</div>', "Ending in the next 60 days", low.length ? low.map(p => paperRow(p, true, true)).join("") : '<p class="mut">Nothing running low.</p>') +
     calendarCard() +
     cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Papers with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true, false)).join("") : '<p class="mut">None yet.</p>') +
-    cardShell("Workers", '<div class="big in">' + workers.length + '</div>', "Tap a worker to open their license", workersInner) +
+    cardShell("Workers", '<div class="big in">' + workers.length + '</div>', "Your employees. Tap one to open their license", workersInner) +
     cardShell("Subs", '<div class="big in">' + subs.length + '</div>', "Papers in against papers needed", subsInner);
   $("tab-dash").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openPaper(el.dataset.open)));
   $("p-worker").innerHTML = workers.map(w => '<option value="' + w.id + '">' + esc(w.name) + '</option>').join("");
@@ -394,7 +431,7 @@ function renderDetail(p){
   $("d-title").textContent = p.kind + (p.label ? " — " + p.label : "");
   let h = "";
   h += kv("Belongs to", esc(holderName(p)));
-  h += kv("Who they are", p.holder_type === "firm" ? "Your firm" : p.holder_type === "worker" ? "Worker" : "Subcontractor");
+  h += kv("Who they are", p.holder_type === "firm" ? "Your firm" : p.holder_type === "worker" ? "Employee" : "Subcontractor");
   h += kv("Type", esc(p.kind));
   if(p.label) h += kv("Label", esc(p.label));
   h += kv("Ends", fmtDate(p.end_date));
@@ -404,7 +441,11 @@ function renderDetail(p){
   if(p.vin) h += kv("VIN", esc(p.vin));
   if(p.holder_type === "worker"){
     const w = workers.find(x => x.id === p.worker_id);
-    if(w && w.role) h += kv("Worker role", esc(w.role));
+    if(w){
+      if(w.role) h += kv("Worker role", esc(w.role));
+      if(w.phone) h += kv("Worker phone", esc(w.phone));
+      if(w.email) h += kv("Worker email", esc(w.email));
+    }
     if(p.hours_needed) h += kv("Training hours", (p.hours_logged||0) + " of " + p.hours_needed + " logged, " + Math.max(0, p.hours_needed - (p.hours_logged||0)) + " still owed");
   }
   if(p.holder_type === "sub"){
@@ -478,6 +519,7 @@ function showTab(t){
   if(t !== "detail") openId = null;
 }
 document.querySelectorAll("#main-tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+$("btn-goto-add").addEventListener("click", () => showTab("add"));
 
 $("btn-show-signup").addEventListener("click", () => {
   $("firm-fields").classList.remove("hidden");
@@ -512,29 +554,104 @@ async function enterApp(){
   await loadAll();
 }
 
-$("s-kinds").innerHTML = SUB_KINDS.map(k =>
-  '<label style="font-weight:400"><input type="checkbox" class="s-kind" value="' + k + '" style="width:auto"> ' + k + '</label>').join("");
-$("btn-worker").addEventListener("click", async () => {
-  const name = $("w-name").value.trim();
-  if(!name){ $("w-msg").innerHTML = '<p class="err">Type the worker name.</p>'; return; }
-  const { error } = await sb.from("workers").insert({ firm_id: firm.id, name, role: $("w-role").value.trim() });
-  $("w-msg").innerHTML = error ? '<p class="err">' + esc(error.message) + '</p>' : '<p class="ok">Worker added.</p>';
-  if(!error){ $("w-name").value = ""; $("w-role").value = ""; await loadAll(); }
-});
-$("btn-sub").addEventListener("click", async () => {
-  const name = $("s-name").value.trim();
-  if(!name){ $("s-msg").innerHTML = '<p class="err">Type the sub company name.</p>'; return; }
-  const { data, error } = await sb.from("subs").insert({ firm_id: firm.id, company_name: name,
-    contact_name: $("s-contact").value.trim(), trade: $("s-trade").value.trim(),
-    phone: $("s-phone").value.trim(), email: $("s-email").value.trim() }).select().single();
-  if(error){ $("s-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
-  const kinds = [...document.querySelectorAll(".s-kind:checked")].map(c => c.value);
-  for(const k of kinds){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: data.id, paper_kind: k }); }
-  $("s-msg").innerHTML = '<p class="ok">Sub added.</p>';
-  ["s-name","s-contact","s-trade","s-phone","s-email"].forEach(id => $(id).value = "");
-  document.querySelectorAll(".s-kind").forEach(c => c.checked = false);
+/* ---------- Add new worker flow ---------- */
+function renderPaperChoices(){
+  const list = addType === "employee" ? EMP_PAPERS : SUB_PAPERS;
+  $("n-papers").innerHTML = list.map((o, i) =>
+    '<div class="pickbox">' +
+    '<label style="margin:0;font-weight:600"><input type="checkbox" class="n-kind" data-i="' + i + '" style="width:auto"> ' + o.label + '</label>' +
+    '<div class="n-date-wrap hidden" id="n-date-wrap-' + i + '">' +
+      '<label>End date, if you already have this paper</label><input type="date" class="n-date" id="n-date-' + i + '">' +
+      (o.hours ? '<div class="row"><div><label>Training hours logged</label><input type="number" min="0" step="0.5" id="n-hours-logged"></div><div><label>Hours needed</label><input type="number" min="0" step="0.5" id="n-hours-needed"></div></div><p class="mut">CrewDue holds the hours a worker types in and counts what is still owed. It does not watch hours being earned.</p>' : '') +
+    '</div></div>').join("");
+  document.querySelectorAll(".n-kind").forEach(cb => cb.addEventListener("change", () => {
+    $("n-date-wrap-" + cb.dataset.i).classList.toggle("hidden", !cb.checked);
+    updateVehWrap();
+  }));
+  updateVehWrap();
+}
+function updateVehWrap(){
+  const list = addType === "employee" ? EMP_PAPERS : SUB_PAPERS;
+  const anyVeh = [...document.querySelectorAll(".n-kind")].some(cb => cb.checked && list[Number(cb.dataset.i)].veh);
+  $("n-veh-wrap").classList.toggle("hidden", !anyVeh);
+}
+function setAddType(t){
+  addType = t;
+  $("type-employee").className = t === "employee" ? "btn" : "btn secondary";
+  $("type-sub").className = t === "sub" ? "btn" : "btn secondary";
+  $("type-employee").style.marginTop = "0";
+  $("type-sub").style.marginTop = "0";
+  $("emp-fields").classList.toggle("hidden", t !== "employee");
+  $("sub-fields").classList.toggle("hidden", t !== "sub");
+  renderPaperChoices();
+}
+$("type-employee").addEventListener("click", () => setAddType("employee"));
+$("type-sub").addEventListener("click", () => setAddType("sub"));
+
+$("btn-add-person").addEventListener("click", async () => {
+  $("n-msg").innerHTML = "";
+  const list = addType === "employee" ? EMP_PAPERS : SUB_PAPERS;
+  const picked = [...document.querySelectorAll(".n-kind")].filter(cb => cb.checked).map(cb => {
+    const i = Number(cb.dataset.i);
+    const dateEl = $("n-date-" + i);
+    return { opt: list[i], date: dateEl ? (dateEl.value || null) : null };
+  });
+  let personId = null, personName = "";
+  if(addType === "employee"){
+    const name = $("n-name").value.trim();
+    if(!name){ $("n-msg").innerHTML = '<p class="err">Type the employee name.</p>'; return; }
+    const { data, error } = await sb.from("workers").insert({ firm_id: firm.id, name: name, role: $("n-role").value.trim(), phone: $("n-phone").value.trim(), email: $("n-email").value.trim() }).select().single();
+    if(error){ $("n-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+    personId = data.id; personName = name;
+  } else {
+    const company = $("n-company").value.trim();
+    if(!company){ $("n-msg").innerHTML = '<p class="err">Type the company name.</p>'; return; }
+    const { data, error } = await sb.from("subs").insert({ firm_id: firm.id, company_name: company, contact_name: $("n-contact").value.trim(), trade: $("n-trade").value.trim(), phone: $("n-phone").value.trim(), email: $("n-email").value.trim() }).select().single();
+    if(error){ $("n-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+    personId = data.id; personName = company;
+    for(const pk of picked){ await sb.from("sub_requirements").insert({ firm_id: firm.id, sub_id: personId, paper_kind: pk.opt.kind }); }
+  }
+  const inList = [], chaseList = [];
+  for(const pk of picked){
+    const isVeh = !!pk.opt.veh;
+    const hl = $("n-hours-logged"), hn = $("n-hours-needed");
+    const base = { firm_id: firm.id, kind: pk.opt.kind, holder_type: addType === "employee" ? "worker" : "sub",
+      worker_id: addType === "employee" ? personId : null, sub_id: addType === "sub" ? personId : null,
+      label: isVeh ? ($("n-veh-label").value.trim() || "Vehicle") : "",
+      end_date: pk.date,
+      plate: isVeh ? ($("n-plate").value.trim() || null) : null,
+      vin: isVeh ? ($("n-vin").value.trim() || null) : null,
+      hours_logged: pk.opt.hours && hl && hl.value ? Number(hl.value) : null,
+      hours_needed: pk.opt.hours && hn && hn.value ? Number(hn.value) : null };
+    if(pk.date){
+      await sb.from("papers").insert(base);
+      inList.push(pk.opt.label + ", in, ends " + fmtDate(pk.date));
+    } else {
+      if(addType === "employee" && isVeh){ await sb.from("papers").insert(base); }
+      chaseList.push(pk.opt.label);
+    }
+  }
+  $("add-done-title").textContent = "Now chasing " + personName;
+  let dh = "";
+  if(inList.length) dh += "<p><strong>In:</strong><br>" + inList.map(x => esc(x)).join("<br>") + "</p>";
+  if(chaseList.length) dh += "<p><strong>We are now chasing for:</strong><br>" + chaseList.map(x => esc(x)).join("<br>") + "</p>";
+  if(!inList.length && !chaseList.length) dh += "<p>" + esc(personName) + " is added. No papers were ticked, so nothing is being chased yet.</p>";
+  dh += '<p class="mut">They now show on the home page and in the report, as what is in and what we are waiting for.</p>';
+  $("add-done-body").innerHTML = dh;
+  $("add-form-card").classList.add("hidden");
+  $("add-done").classList.remove("hidden");
   await loadAll();
 });
+$("btn-done-home").addEventListener("click", () => showTab("dash"));
+$("btn-done-another").addEventListener("click", () => {
+  ["n-name","n-role","n-company","n-contact","n-trade","n-phone","n-email","n-veh-label","n-plate","n-vin"].forEach(id => { const el = $(id); if(el) el.value = ""; });
+  $("n-msg").innerHTML = "";
+  setAddType("employee");
+  $("add-done").classList.add("hidden");
+  $("add-form-card").classList.remove("hidden");
+});
+
+/* ---------- Add a paper for someone already here ---------- */
 $("p-holder").addEventListener("change", () => {
   const v = $("p-holder").value;
   $("p-worker-wrap").classList.toggle("hidden", v !== "worker");
@@ -600,6 +717,7 @@ $("btn-csv").addEventListener("click", () => {
 });
 $("btn-print").addEventListener("click", () => window.print());
 
+setAddType("employee");
 (async () => { const { data } = await sb.auth.getSession(); if(data.session){ enterApp(); } })();
 </script>
 </body>
