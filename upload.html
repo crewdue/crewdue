@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrewDue — Upload your documents</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --green:#1d6b4f; --green-dark:#14503a; --green-soft:#e8f3ee; --amber:#b97a0c; --amber-soft:#fdf3e0; --red:#b3261e; --ink:#1a1a1a; --mut:#5a5a5a; --line:#e2e2dc; --bg:#f4f5f1; --card:#fff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:var(--green-dark); color:#fff; padding:14px 18px; }
+  header .brand{ font-size:20px; font-weight:700; letter-spacing:.2px; }
+  main{ max-width:720px; margin:0 auto; padding:22px 16px 60px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin:0 0 16px; box-shadow:0 1px 3px rgba(20,60,45,.06); }
+  h1{ font-size:22px; margin:0 0 6px; }
+  h2{ font-size:16px; margin:0 0 8px; }
+  p{ line-height:1.5; }
+  .mut{ color:var(--mut); font-size:14px; }
+  label{ display:block; font-size:14px; font-weight:600; margin:12px 0 4px; }
+  input{ width:100%; padding:10px; font-size:16px; border:1px solid #bbb; border-radius:8px; background:#fff; }
+  .btn{ display:inline-block; background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px 20px; font-size:16px; font-weight:700; cursor:pointer; margin-top:14px; }
+  .btn.small{ padding:8px 14px; font-size:14px; margin-top:8px; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .row > div{ flex:1; min-width:150px; }
+  .chip{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:700; border:1.5px solid; white-space:nowrap; }
+  .chip.in{ color:var(--green-dark); border-color:var(--green); background:var(--green-soft); }
+  .slot{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:0 0 10px; }
+  .err{ color:var(--red); font-size:14px; margin-top:8px; }
+  .ok{ color:var(--green-dark); font-size:14px; margin-top:8px; }
+  .hidden{ display:none; }
+</style>
+</head>
+<body>
+<header><div class="brand">CrewDue</div></header>
+<main>
+  <div class="card" id="view-loading"><p>Loading…</p></div>
+
+  <div class="card hidden" id="view-error">
+    <h1>This link is not working</h1>
+    <p class="mut">Please ask the company that sent it to send you a new link.</p>
+  </div>
+
+  <div id="view-main" class="hidden">
+    <div class="card">
+      <h1 id="u-title">Upload your documents</h1>
+      <p class="mut" id="u-sub"></p>
+    </div>
+    <div class="card">
+      <h2>Documents still needed</h2>
+      <div id="u-needed"></div>
+    </div>
+    <div class="card hidden" id="u-received-card">
+      <h2>Already received</h2>
+      <div id="u-received"></div>
+    </div>
+    <div class="card">
+      <h2>Your details</h2>
+      <p class="mut">Fill in anything missing, or fix anything that changed.</p>
+      <div class="row">
+        <div><label>Phone</label><input id="u-phone" type="text"></div>
+        <div><label>Email</label><input id="u-email" type="email"></div>
+      </div>
+      <label>Address</label><input id="u-address" type="text">
+      <div class="row">
+        <div><label>City</label><input id="u-city" type="text"></div>
+        <div><label>State</label><input id="u-state" type="text"></div>
+      </div>
+      <button class="btn small" id="btn-u-save">Save details</button>
+      <div id="u-det-msg"></div>
+    </div>
+    <p class="mut">Questions? Reply to the email or text that brought you here.</p>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://xwknfnsqfsymmjlzgcat.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3a25mbnNxZnN5bW1qbHpnY2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0NTcwMTgsImV4cCI6MjExMTAzMzAxOH0.A6LvosJHT-5Ax-z4XKqo2Pj-X9Ilj1PhgT9bDTRTF_c";
+const token = new URLSearchParams(location.search).get("k");
+const $ = id => document.getElementById(id);
+function esc(s){ return (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+let sb = null, person = null, personType = null, firm = null, papers = [], reqs = [];
+
+function showError(){
+  $("view-loading").classList.add("hidden");
+  $("view-main").classList.add("hidden");
+  $("view-error").classList.remove("hidden");
+}
+
+async function load(){
+  const w = (await sb.from("workers").select("*").eq("upload_token", token)).data;
+  if(w && w.length){ person = w[0]; personType = "worker"; }
+  else {
+    const s = (await sb.from("subs").select("*").eq("upload_token", token)).data;
+    if(s && s.length){ person = s[0]; personType = "sub"; }
+  }
+  if(!person){ showError(); return; }
+  firm = (await sb.from("firms").select("*").eq("id", person.firm_id).single()).data;
+  const col = personType === "worker" ? "worker_id" : "sub_id";
+  papers = (await sb.from("papers").select("*").eq(col, person.id)).data || [];
+  if(personType === "sub") reqs = (await sb.from("sub_requirements").select("*").eq("sub_id", person.id)).data || [];
+  render();
+}
+
+function neededSlots(){
+  const slots = [];
+  if(personType === "sub"){
+    reqs.forEach(r => {
+      const sat = papers.find(p => p.kind === r.paper_kind || p.kind === "Sub COI");
+      if(!sat) slots.push({ kind: r.paper_kind, paperId: null, hasDate: false });
+    });
+  }
+  if(personType === "worker" && !papers.some(p => p.kind === "Worker license")){
+    slots.push({ kind: "Worker license", paperId: null, hasDate: false });
+  }
+  papers.filter(p => !p.file_path).forEach(p => {
+    if(!slots.some(s => s.paperId === p.id)) slots.push({ kind: p.kind, paperId: p.id, label: p.label, hasDate: !!p.end_date });
+  });
+  return slots;
+}
+
+function render(){
+  $("view-loading").classList.add("hidden");
+  $("view-main").classList.remove("hidden");
+  const myName = personType === "worker" ? person.name : person.company_name;
+  $("u-sub").textContent = "For " + (firm ? firm.company_name : "your company") + " · " + myName;
+  const slots = neededSlots();
+  if(!slots.length){
+    $("u-needed").innerHTML = '<p class="mut">Nothing is needed right now. Thank you.</p>';
+  } else {
+    $("u-needed").innerHTML = slots.map((s, i) =>
+      '<div class="slot" id="slot-' + i + '"><strong>' + esc(s.kind) + (s.label ? " — " + esc(s.label) : "") + '</strong>' +
+      (s.hasDate ? "" : '<label>End date printed on the document</label><input type="date" id="slot-date-' + i + '">') +
+      '<label>Photo or PDF of the document</label><input type="file" id="slot-file-' + i + '" accept="image/*,.pdf">' +
+      '<button class="btn small" data-upload="' + i + '">Upload</button>' +
+      '<div id="slot-msg-' + i + '"></div></div>').join("");
+    document.querySelectorAll("[data-upload]").forEach(b => b.addEventListener("click", () => doUpload(Number(b.dataset.upload), slots)));
+  }
+  const got = papers.filter(p => p.file_path);
+  $("u-received-card").classList.toggle("hidden", !got.length);
+  $("u-received").innerHTML = got.map(p =>
+    '<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)"><span><strong>' + esc(p.kind) + '</strong>' + (p.label ? " — " + esc(p.label) : "") + '</span><span class="chip in">Received</span></div>').join("");
+  $("u-phone").value = person.phone || "";
+  $("u-email").value = person.email || "";
+  $("u-address").value = person.address || "";
+  $("u-city").value = person.city || "";
+  $("u-state").value = person.state || "";
+}
+
+async function doUpload(i, slots){
+  const s = slots[i];
+  const msg = $("slot-msg-" + i);
+  const fileEl = $("slot-file-" + i);
+  const f = fileEl && fileEl.files && fileEl.files[0];
+  if(!f){ msg.innerHTML = '<p class="err">Pick a file first.</p>'; return; }
+  const dateEl = $("slot-date-" + i);
+  const dateVal = dateEl ? (dateEl.value || null) : null;
+  msg.innerHTML = '<p class="mut">Uploading…</p>';
+  let paperId = s.paperId;
+  if(!paperId){
+    const row = { firm_id: person.firm_id, kind: s.kind, holder_type: personType,
+      worker_id: personType === "worker" ? person.id : null,
+      sub_id: personType === "sub" ? person.id : null,
+      label: "", end_date: dateVal };
+    const ins = await sb.from("papers").insert(row).select().single();
+    if(ins.error){ msg.innerHTML = '<p class="err">The upload did not go through. Please try again.</p>'; return; }
+    paperId = ins.data.id;
+  }
+  const safe = (f.name || "document").replace(/[^A-Za-z0-9._-]/g, "_");
+  const path = token + "/" + paperId + "/" + safe;
+  const up = await sb.storage.from("papers").upload(path, f, { upsert: true });
+  if(up.error){ msg.innerHTML = '<p class="err">The upload did not go through. Please try again.</p>'; return; }
+  const upd = { file_path: path };
+  if(dateVal) upd.end_date = dateVal;
+  const u2 = await sb.from("papers").update(upd).eq("id", paperId);
+  if(u2.error){ msg.innerHTML = '<p class="err">The upload did not go through. Please try again.</p>'; return; }
+  const col = personType === "worker" ? "worker_id" : "sub_id";
+  papers = (await sb.from("papers").select("*").eq(col, person.id)).data || [];
+  render();
+}
+
+$("btn-u-save").addEventListener("click", async () => {
+  const table = personType === "worker" ? "workers" : "subs";
+  const upd = { phone: $("u-phone").value.trim(), email: $("u-email").value.trim(), address: $("u-address").value.trim(), city: $("u-city").value.trim(), state: $("u-state").value.trim() };
+  const { error } = await sb.from(table).update(upd).eq("id", person.id);
+  $("u-det-msg").innerHTML = error ? '<p class="err">Saving did not go through. Please try again.</p>' : '<p class="ok">Saved. Thank you.</p>';
+  if(!error) Object.assign(person, upd);
+});
+
+(async () => {
+  if(!token){ showError(); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { global: { headers: { "x-upload-token": token } } });
+  try { await load(); }
+  catch(e){ showError(); }
+})();
+</script>
+</body>
+</html>

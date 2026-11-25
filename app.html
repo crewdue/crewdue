@@ -106,7 +106,7 @@
   <section id="view-app" class="hidden">
     <div class="tabs" id="main-tabs">
       <button data-tab="dash" class="on">Home</button>
-      <button data-tab="add">Add new</button>
+      <button data-tab="add">Add</button>
       <button data-tab="report">Report</button>
     </div>
 
@@ -117,16 +117,24 @@
         <p style="margin-top:12px"><button class="btn" id="btn-goto-add" style="margin-top:0">+ Add new worker</button></p>
       </div>
       <div class="grid" id="dash-grid"></div>
+      <div id="undo-bar" class="card hidden" style="margin-top:16px">
+        <span id="undo-text"></span>
+        <button class="btn small" id="btn-undo" style="margin:0 0 0 10px">Undo</button>
+      </div>
+      <div class="card" id="trash-card" style="margin-top:16px;cursor:pointer">
+        <h2 style="margin:0">Trash</h2>
+        <p class="mut" id="trash-count" style="margin:4px 0 0">Nothing deleted.</p>
+      </div>
       <div style="margin-top:16px">
         <button class="btn secondary small noprint" id="btn-sample">Load sample data</button>
-        <p class="mut">Sample data is made up, so you can see how it works. Tap any line in any card to open that paper.</p>
+        <p class="mut">Sample data is made up, so you can see how it works. Tap any line in any card to open it.</p>
       </div>
     </div>
 
     <div id="tab-detail" class="hidden">
       <button class="btn secondary small" id="btn-back">&larr; Back</button>
       <div class="card" style="margin-top:12px">
-        <h2 id="d-title">Paper</h2>
+        <h2 id="d-title">Document</h2>
         <div id="d-body"></div>
       </div>
       <p><button class="btn secondary small hidden" id="btn-open-person" style="margin-top:0">Open their page</button></p>
@@ -151,15 +159,25 @@
         <div id="d-msg"></div>
       </div>
       <div class="card">
-        <h2>The paper itself</h2>
+        <h2>The document</h2>
         <div id="d-file-body"><p class="mut">No file uploaded yet.</p></div>
-        <label>Upload the paper (photo or PDF)</label>
+        <label>Upload the document (photo or PDF)</label>
         <input id="d-file" type="file" accept="image/*,.pdf">
         <button class="btn small" id="btn-upload-file">Upload</button>
         <div id="d-file-msg"></div>
       </div>
       <div class="card">
-        <button class="btn danger small" id="btn-delete-detail">Delete this paper</button>
+        <button class="btn danger small" id="btn-delete-detail">Delete this document</button>
+        <p class="mut" style="margin-bottom:0">It goes to the Trash first. You have 7 days to put it back.</p>
+      </div>
+    </div>
+
+    <div id="tab-trash" class="hidden">
+      <button class="btn secondary small" id="btn-trash-back">&larr; Back</button>
+      <div class="card" style="margin-top:12px">
+        <h2>Trash</h2>
+        <p class="mut">Deleted documents stay here for 7 days. Put one back any time in those 7 days. After 7 days, it is deleted for good.</p>
+        <div id="trash-body"></div>
       </div>
     </div>
 
@@ -174,16 +192,16 @@
             <div style="flex:3"><input id="person-link" type="text" readonly></div>
             <div style="flex:1"><button class="btn secondary small" id="btn-copy-person-link" style="width:100%">Copy link</button></div>
           </div>
-          <p class="mut">They open this link to upload the papers and fill in anything missing. No sign in needed.</p>
+          <p class="mut">They open this link to upload the documents and fill in anything missing. No sign in needed.</p>
         </div>
       </div>
       <div class="card">
-        <h2>Add a paper for them</h2>
-        <label>What paper?</label>
+        <h2>Add a document</h2>
+        <label>What document?</label>
         <select id="pp-kind"></select>
         <label>Label (what you call it)</label>
         <input id="pp-label" type="text" placeholder="Liability and workers comp">
-        <label>End date, if you already have this paper</label>
+        <label>End date, if you already have this document</label>
         <input id="pp-date" type="date">
         <div id="pp-veh-wrap" class="hidden">
           <div class="row">
@@ -199,9 +217,9 @@
           </div>
           <p class="mut">CrewDue holds the hours a worker types in and counts what is still owed. It does not watch hours being earned.</p>
         </div>
-        <label>Upload the paper, if you have it (photo or PDF)</label>
+        <label>Upload the document, if you have it (photo or PDF)</label>
         <input id="pp-file" type="file" accept="image/*,.pdf">
-        <button class="btn small" id="btn-pp-add">Add paper</button>
+        <button class="btn small" id="btn-pp-add">Add document</button>
         <div id="pp-msg"></div>
       </div>
       <div class="card">
@@ -221,6 +239,38 @@
         <button class="btn small" id="btn-pe-save">Save details</button>
         <div id="pe-msg"></div>
       </div>
+      <div class="card" style="border-color:#e5b4b0">
+        <h2 id="remove-title">Remove this entry</h2>
+        <p class="mut">This is different from deleting a document. Deleting a document removes only that document, and the entry stays. This removes the whole entry, with all of their documents. It goes to the Trash, and you can put it back for 7 days.</p>
+        <button class="btn danger small" id="btn-remove-person">Remove this entry</button>
+      </div>
+    </div>
+
+    <div id="tab-firm" class="hidden">
+      <button class="btn secondary small" id="btn-firm-back">&larr; Back</button>
+      <div class="card" style="margin-top:12px">
+        <h2 id="firm-title">Your firm</h2>
+        <div id="firm-body"></div>
+      </div>
+      <div class="card">
+        <h2>Add a document</h2>
+        <label>What document?</label>
+        <select id="fp-kind"></select>
+        <label>Label (what you call it)</label>
+        <input id="fp-label" type="text" placeholder="Truck 2">
+        <label>End date, if you already have this document</label>
+        <input id="fp-date" type="date">
+        <div id="fp-veh-wrap" class="hidden">
+          <div class="row">
+            <div><label>Plate</label><input id="fp-plate" type="text"></div>
+            <div><label>VIN</label><input id="fp-vin" type="text"></div>
+          </div>
+        </div>
+        <label>Upload the document, if you have it (photo or PDF)</label>
+        <input id="fp-file" type="file" accept="image/*,.pdf">
+        <button class="btn small" id="btn-fp-add">Add document</button>
+        <div id="fp-msg"></div>
+      </div>
     </div>
 
     <div id="tab-add" class="hidden">
@@ -233,7 +283,7 @@
             <div style="flex:3"><input id="add-link" type="text" readonly></div>
             <div style="flex:1"><button class="btn secondary small" id="btn-copy-link" style="width:100%">Copy link</button></div>
           </div>
-          <p class="mut">They open this link to upload the papers and fill in anything missing. No sign in needed.</p>
+          <p class="mut">They open this link to upload the documents and fill in anything missing. No sign in needed.</p>
           <label>How should the link get to them?</label>
           <label style="font-weight:400"><input type="radio" name="link-send" value="auto" style="width:auto"> Send it automatically, by email or text</label>
           <label style="font-weight:400"><input type="radio" name="link-send" value="manual" style="width:auto"> I will send it myself</label>
@@ -247,7 +297,7 @@
 
       <div class="card" id="add-form-card">
         <h2>Add new worker</h2>
-        <p class="mut">One person at a time. Pick who they are, tick the papers we chase for them, and add their details.</p>
+        <p class="mut">One person at a time. Pick who they are, tick the documents we chase for them, and add their details.</p>
         <label>Who are you adding?</label>
         <div class="row">
           <div><button class="btn" id="type-employee" style="width:100%;margin-top:0">Employee</button></div>
@@ -274,11 +324,11 @@
           <div><label>City</label><input id="n-city" type="text"></div>
           <div><label>State</label><input id="n-state" type="text"></div>
         </div>
-        <label>Papers we chase for them</label>
-        <p class="mut">Tick each paper this person must have. If you already hold one, put its end date and it counts as in. Leave the date blank and we chase it.</p>
+        <label>Documents we chase for them</label>
+        <p class="mut">Tick each document this person must have. If you already hold one, put its end date and it counts as in. Leave the date blank and we chase it.</p>
         <div id="n-papers"></div>
         <div id="n-veh-wrap" class="hidden">
-          <label>Vehicle (for the vehicle papers ticked above)</label>
+          <label>Vehicle (for the vehicle documents ticked above)</label>
           <input id="n-veh-label" type="text" placeholder="Truck 2">
           <div class="row">
             <div><label>Plate</label><input id="n-plate" type="text"></div>
@@ -292,7 +342,7 @@
 
     <div id="tab-report" class="hidden">
       <div class="card">
-        <h2>Report: papers in, papers still needed</h2>
+        <h2>Report: documents in, documents still needed</h2>
         <div id="report-table"></div>
         <div class="row noprint">
           <div><button class="btn small" id="btn-csv">Download spreadsheet (CSV)</button></div>
@@ -362,7 +412,7 @@ function chaseLine(list){
   return "Chased " + list.length + (list.length === 1 ? " time" : " times") + " · last " + fmtDate(last.sent_on) + " by " + String(last.channel || "").toLowerCase();
 }
 async function uploadPaperFile(paperId, file){
-  const safe = (file.name || "paper").replace(/[^A-Za-z0-9._-]/g, "_");
+  const safe = (file.name || "document").replace(/[^A-Za-z0-9._-]/g, "_");
   const path = firm.id + "/" + paperId + "/" + safe;
   const { error } = await sb.storage.from("papers").upload(path, file, { upsert: true });
   if(error) return false;
@@ -370,15 +420,120 @@ async function uploadPaperFile(paperId, file){
   return !upd.error;
 }
 
+let trashPapers = [];
+let trashPeople = [];
+let lastDeleted = null;
+
 async function loadAll(){
   const uid = (await sb.auth.getUser()).data.user.id;
   firm = (await sb.from("firms").select("*").eq("id", uid).single()).data;
-  workers = (await sb.from("workers").select("*").order("name")).data || [];
-  subs = (await sb.from("subs").select("*").order("company_name")).data || [];
-  papers = (await sb.from("papers").select("*").order("end_date")).data || [];
+  const allWorkers = (await sb.from("workers").select("*").order("name")).data || [];
+  const allSubs = (await sb.from("subs").select("*").order("company_name")).data || [];
+  const allPapers = (await sb.from("papers").select("*").order("end_date")).data || [];
+  workers = allWorkers.filter(w => !w.deleted_at);
+  subs = allSubs.filter(s => !s.deleted_at);
+  trashPeople = allWorkers.filter(w => w.deleted_at).map(w => ({ type: "worker", row: w }))
+    .concat(allSubs.filter(s => s.deleted_at).map(s => ({ type: "sub", row: s })));
+  const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+  const oldPeople = trashPeople.filter(t => new Date(t.row.deleted_at).getTime() < cutoff);
+  for(const t of oldPeople){
+    const col = t.type === "worker" ? "worker_id" : "sub_id";
+    for(const p of allPapers.filter(x => x[col] === t.row.id)){
+      if(p.file_path) await sb.storage.from("papers").remove([p.file_path]);
+      await sb.from("papers").delete().eq("id", p.id);
+    }
+    if(t.type === "sub") await sb.from("sub_requirements").delete().eq("sub_id", t.row.id);
+    await sb.from(t.type === "worker" ? "workers" : "subs").delete().eq("id", t.row.id);
+  }
+  if(oldPeople.length) trashPeople = trashPeople.filter(t => !oldPeople.includes(t));
+  const trashedIds = new Set(trashPeople.map(t => t.row.id));
+  papers = allPapers.filter(p => !p.deleted_at)
+    .filter(p => (p.holder_type !== "worker" || workers.some(w => w.id === p.worker_id)) && (p.holder_type !== "sub" || subs.some(s => s.id === p.sub_id)));
+  trashPapers = allPapers.filter(p => p.deleted_at && !trashedIds.has(p.worker_id) && !trashedIds.has(p.sub_id));
+  const old = trashPapers.filter(p => new Date(p.deleted_at).getTime() < cutoff);
+  for(const p of old){
+    if(p.file_path) await sb.storage.from("papers").remove([p.file_path]);
+    await sb.from("papers").delete().eq("id", p.id);
+  }
+  if(old.length) trashPapers = trashPapers.filter(p => !old.includes(p));
   reqs = (await sb.from("sub_requirements").select("*")).data || [];
   chases = (await sb.from("chases").select("*").order("sent_on")).data || [];
   render();
+  syncTrashUI();
+}
+
+function syncTrashUI(){
+  const total = trashPapers.length + trashPeople.length;
+  const tc = $("trash-count");
+  if(tc) tc.textContent = total ? total + (total === 1 ? " item" : " items") + " in the trash. Tap to open." : "Nothing deleted.";
+  const bar = $("undo-bar");
+  if(bar){
+    const inTrash = !!(lastDeleted && (lastDeleted.kind === "paper"
+      ? trashPapers.some(p => p.id === lastDeleted.id)
+      : trashPeople.some(t => t.row.id === lastDeleted.id)));
+    bar.classList.toggle("hidden", !inTrash);
+    if(inTrash) $("undo-text").textContent = "Deleted: " + lastDeleted.text + ".";
+  }
+  renderTrash();
+}
+
+function renderTrash(){
+  const el = $("trash-body");
+  if(!el) return;
+  if(!trashPapers.length && !trashPeople.length){ el.innerHTML = '<p class="mut">Nothing in the trash.</p>'; return; }
+  let h = "";
+  if(trashPeople.length){
+    h += '<p><strong>Entries</strong></p>' + trashPeople.map(t => {
+      const p = t.row;
+      const nm = t.type === "sub" ? p.company_name : p.name;
+      const gone = new Date(new Date(p.deleted_at).getTime() + 7 * 24 * 3600 * 1000);
+      return '<div class="paper"><div><strong>' + esc(nm) + '</strong> · ' + (t.type === "sub" ? "Subcontractor" : "Worker") + ' entry<br><span class="mut">Deleted ' + fmtDate(p.deleted_at.slice(0,10)) + ' · gone for good ' + fmtDate(gone.toISOString().slice(0,10)) + '</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary small" data-restore-person="' + t.type + ':' + p.id + '">Put back</button><button class="btn danger small" data-forever-person="' + t.type + ':' + p.id + '">Delete forever</button></div></div>';
+    }).join("");
+  }
+  if(trashPapers.length){
+    h += '<p><strong>Documents</strong></p>' + trashPapers.map(p => {
+      const gone = new Date(new Date(p.deleted_at).getTime() + 7 * 24 * 3600 * 1000);
+      return '<div class="paper"><div><strong>' + esc(holderName(p)) + '</strong> · ' + esc(p.kind) + (p.label ? " — " + esc(p.label) : "") + '<br><span class="mut">Deleted ' + fmtDate(p.deleted_at.slice(0,10)) + ' · gone for good ' + fmtDate(gone.toISOString().slice(0,10)) + '</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary small" data-restore="' + p.id + '">Put back</button><button class="btn danger small" data-forever="' + p.id + '">Delete forever</button></div></div>';
+    }).join("");
+  }
+  el.innerHTML = h;
+  el.querySelectorAll("[data-restore]").forEach(b => b.addEventListener("click", async () => {
+    await sb.from("papers").update({ deleted_at: null }).eq("id", b.dataset.restore);
+    if(lastDeleted && lastDeleted.id === b.dataset.restore) lastDeleted = null;
+    await loadAll();
+  }));
+  el.querySelectorAll("[data-forever]").forEach(b => b.addEventListener("click", async () => {
+    const p = trashPapers.find(x => x.id === b.dataset.forever);
+    if(!p) return;
+    if(!confirm("Delete this document for good?\n\nThis cannot be undone.")) return;
+    if(p.file_path) await sb.storage.from("papers").remove([p.file_path]);
+    await sb.from("papers").delete().eq("id", p.id);
+    if(lastDeleted && lastDeleted.id === p.id) lastDeleted = null;
+    await loadAll();
+  }));
+  el.querySelectorAll("[data-restore-person]").forEach(b => b.addEventListener("click", async () => {
+    const parts = b.dataset.restorePerson.split(":");
+    await sb.from(parts[0] === "sub" ? "subs" : "workers").update({ deleted_at: null }).eq("id", parts[1]);
+    if(lastDeleted && lastDeleted.id === parts[1]) lastDeleted = null;
+    await loadAll();
+  }));
+  el.querySelectorAll("[data-forever-person]").forEach(b => b.addEventListener("click", async () => {
+    const parts = b.dataset.foreverPerson.split(":");
+    const t = trashPeople.find(x => x.type === parts[0] && x.row.id === parts[1]);
+    if(!t) return;
+    const nm = t.type === "sub" ? t.row.company_name : t.row.name;
+    if(!confirm("Delete " + nm + "'s entry for good?\n\nThe entry and all of their documents are deleted. This cannot be undone.")) return;
+    const col = t.type === "worker" ? "worker_id" : "sub_id";
+    const { data: their } = await sb.from("papers").select("*").eq(col, t.row.id);
+    for(const p of (their || [])){
+      if(p.file_path) await sb.storage.from("papers").remove([p.file_path]);
+      await sb.from("papers").delete().eq("id", p.id);
+    }
+    if(t.type === "sub") await sb.from("sub_requirements").delete().eq("sub_id", t.row.id);
+    await sb.from(t.type === "worker" ? "workers" : "subs").delete().eq("id", t.row.id);
+    if(lastDeleted && lastDeleted.id === t.row.id) lastDeleted = null;
+    await loadAll();
+  }));
 }
 
 function paperRow(p, showHolder, showChase){
@@ -420,8 +575,14 @@ function calendarCard(){
   for(let d = 1; d <= daysIn; d++){
     const list = byDay[d];
     let cls = "d";
-    if(list) cls += statusFor(list[0]).word === "Expired" ? " mark out" : " mark";
-    cells += '<div class="' + cls + '">' + d + "</div>";
+    let openAttr = "";
+    if(list){
+      cls += statusFor(list[0]).word === "Expired" ? " mark out" : " mark";
+      cls += " tap";
+      const first = list.slice().sort((a,b) => (statusFor(a).word === "Expired" ? 0 : 1) - (statusFor(b).word === "Expired" ? 0 : 1))[0];
+      openAttr = ' data-open="' + first.id + '"';
+    }
+    cells += '<div class="' + cls + '"' + openAttr + '>' + d + "</div>";
   }
   const monthList = papers.filter(p => {
     if(!p.end_date) return false;
@@ -432,7 +593,7 @@ function calendarCard(){
     (monthList.length ? monthList.map(p => paperRow(p, true, false)).join("") : '<p class="mut" style="margin-top:10px">No end dates this month.</p>');
   const next30 = papers.filter(p => { const dl = daysLeft(p.end_date); return dl !== null && dl >= 0 && dl <= 30; }).length;
   const monthName = now.toLocaleDateString("en-US",{month:"long", year:"numeric"});
-  return cardShell("Dates calendar", '<div class="big in">' + next30 + '</div>', monthName + " · the number counts papers ending in the next 30 days", inner);
+  return cardShell("Dates calendar", '<div class="big in">' + next30 + '</div>', monthName + " · the number counts documents ending in the next 30 days", inner);
 }
 
 function render(){
@@ -445,7 +606,7 @@ function render(){
   const needsCount = expired.length + missing.length;
 
   let needsInner = expired.map(p => paperRow(p, true, true)).join("");
-  needsInner += missing.map(m => '<div class="paper"><div><strong>' + esc(m.sub ? m.sub.company_name : "Sub") + '</strong> · ' + esc(m.kind) + '<br><span class="mut">Not sent yet</span><br><span class="mut">' + chaseLine(chasesForMissing(m.sub ? m.sub.id : null, m.kind)) + '</span></div><span class="chip need">Still needed</span></div>').join("");
+  needsInner += missing.map(m => '<div class="paper tap" data-person="sub:' + (m.sub ? m.sub.id : "") + '"><div><strong>' + esc(m.sub ? m.sub.company_name : "Sub") + '</strong> · ' + esc(m.kind) + '<br><span class="mut">Not sent yet</span><br><span class="mut">' + chaseLine(chasesForMissing(m.sub ? m.sub.id : null, m.kind)) + '</span></div><div style="display:flex;align-items:center"><span class="chip need">Still needed</span><span class="chev">&rsaquo;</span></div></div>').join("");
   if(!needsInner) needsInner = '<p class="mut">Nothing needs you. All clear.</p>';
 
   const workersInner = workers.length ? workers.map(w => {
@@ -458,23 +619,31 @@ function render(){
     const mine = papers.filter(p => p.holder_type === "sub" && p.sub_id === s.id);
     const need = reqs.filter(r => r.sub_id === s.id).length;
     const first = mine[0];
-    const label = '<strong>' + esc(s.company_name) + '</strong><br><span class="mut">' + mine.length + ' of ' + Math.max(need, mine.length) + ' papers in</span>';
+    const label = '<strong>' + esc(s.company_name) + '</strong><br><span class="mut">' + mine.length + ' of ' + Math.max(need, mine.length) + ' documents in</span>';
     const chip = first ? '<span class="chip ' + statusFor(first).cls + '">' + statusFor(first).word + '</span>' : '<span class="chip need">Still needed</span>';
     return '<div class="paper tap" data-person="sub:' + s.id + '"><div>' + label + '</div><div style="display:flex;align-items:center">' + chip + '<span class="chev">&rsaquo;</span></div></div>';
   }).join("") : '<p class="mut">No subs yet.</p>';
 
+  const firmPapers = papers.filter(p => p.holder_type === "firm");
+  const firmInner = '<div class="paper tap" id="firm-open"><div><strong>' + esc(firm ? firm.company_name : "Your firm") + '</strong><br><span class="mut">Open your firm\u2019s page</span></div><div style="display:flex;align-items:center"><span class="chev">&rsaquo;</span></div></div>' +
+    (firmPapers.length ? firmPapers.map(p => paperRow(p, false, false)).join("") : '<p class="mut">No documents yet.</p>');
+
   $("dash-grid").innerHTML =
-    cardShell("Needs you", '<div class="big out">' + needsCount + '</div>', "Expired papers and papers still needed, with the chasing so far", needsInner) +
+    cardShell("Needs you", '<div class="big out">' + needsCount + '</div>', "Expired documents and documents still needed, with the chasing so far", needsInner) +
     cardShell("Running low", '<div class="big low">' + low.length + '</div>', "Ending in the next 60 days", low.length ? low.map(p => paperRow(p, true, true)).join("") : '<p class="mut">Nothing running low.</p>') +
     calendarCard() +
-    cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Papers with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true, false)).join("") : '<p class="mut">None yet.</p>') +
+    cardShell("In good standing", '<div class="big in">' + inP.length + '</div>', "Documents with time to spare", inP.length ? inP.slice(0,4).map(p => paperRow(p, true, false)).join("") : '<p class="mut">None yet.</p>') +
     cardShell("Workers", '<div class="big in">' + workers.length + '</div>', "Your employees. Tap one to open their page", workersInner) +
-    cardShell("Subs", '<div class="big in">' + subs.length + '</div>', "Papers in against papers needed. Tap one to open their page", subsInner);
+    cardShell("Subs", '<div class="big in">' + subs.length + '</div>', "Documents in against documents needed. Tap one to open their page", subsInner) +
+    cardShell("Your firm", '<div class="big in">' + firmPapers.length + '</div>', "Your firm's own documents", firmInner);
   $("tab-dash").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openPaper(el.dataset.open)));
   $("tab-dash").querySelectorAll("[data-person]").forEach(el => el.addEventListener("click", () => { const parts = el.dataset.person.split(":"); goPerson(parts[0], parts[1]); }));
+  const fo = $("firm-open");
+  if(fo) fo.addEventListener("click", () => { renderFirm(); showTab("firm"); });
   renderReport();
   if(openId){ const p = papers.find(x => x.id === openId); if(p) renderDetail(p); }
   if(personSel) renderPerson();
+  if(!$("tab-firm").classList.contains("hidden")) renderFirm();
 }
 
 function kv(k, v){ return '<div class="kv"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
@@ -531,7 +700,7 @@ function renderDetail(p){
   h += '<h2 style="margin-top:18px">Chasing</h2>';
   h += kv("Times chased", String(cl.length));
   cl.forEach(c => { h += kv(fmtDate(c.sent_on), esc(c.channel) + (c.sent_to ? " to " + esc(c.sent_to) : "")); });
-  if(!cl.length) h += '<p class="mut">Not chased yet. Every reminder CrewDue sends for this paper lands here.</p>';
+  if(!cl.length) h += '<p class="mut">Not chased yet. Every reminder CrewDue sends for this document lands here.</p>';
   $("d-body").innerHTML = h;
   const opBtn = $("btn-open-person");
   if(p.holder_type === "worker" || p.holder_type === "sub"){
@@ -544,7 +713,7 @@ function renderDetail(p){
   }
   if(p.file_path){
     const fname = p.file_path.split("/").pop();
-    $("d-file-body").innerHTML = '<p><strong>On file:</strong> ' + esc(fname) + '</p><button class="btn secondary small" id="btn-view-file" style="margin-top:0">View the paper</button>';
+    $("d-file-body").innerHTML = '<p><strong>On file:</strong> ' + esc(fname) + '</p><button class="btn secondary small" id="btn-view-file" style="margin-top:0">View the document</button>';
     $("btn-view-file").addEventListener("click", async () => {
       const { data, error } = await sb.storage.from("papers").createSignedUrl(p.file_path, 3600);
       if(error || !data){ $("d-file-msg").innerHTML = '<p class="err">Could not open the file. Try again.</p>'; return; }
@@ -581,13 +750,23 @@ $("btn-save-detail").addEventListener("click", async () => {
 $("btn-delete-detail").addEventListener("click", async () => {
   const p = papers.find(x => x.id === openId);
   if(!p) return;
-  if(!confirm("Delete this paper? This cannot be undone.")) return;
-  const { error } = await sb.from("papers").delete().eq("id", p.id);
+  if(!confirm("Move this document to the trash?\n\n" + holderName(p) + " stays in the app. The document goes to the Trash, and you can put it back any time in the next 7 days.")) return;
+  const { error } = await sb.from("papers").update({ deleted_at: new Date().toISOString() }).eq("id", p.id);
   if(error){ $("d-msg").innerHTML = '<p class="err">' + esc(error.message) + '</p>'; return; }
+  lastDeleted = { kind: "paper", id: p.id, text: holderName(p) + " · " + p.kind };
   openId = null;
   await loadAll();
   showTab("dash");
 });
+$("btn-undo").addEventListener("click", async () => {
+  if(!lastDeleted) return;
+  const table = lastDeleted.kind === "paper" ? "papers" : (lastDeleted.kind === "worker" ? "workers" : "subs");
+  await sb.from(table).update({ deleted_at: null }).eq("id", lastDeleted.id);
+  lastDeleted = null;
+  await loadAll();
+});
+$("trash-card").addEventListener("click", () => { renderTrash(); showTab("trash"); });
+$("btn-trash-back").addEventListener("click", () => showTab("dash"));
 $("btn-upload-file").addEventListener("click", async () => {
   const p = papers.find(x => x.id === openId);
   if(!p) return;
@@ -597,7 +776,7 @@ $("btn-upload-file").addEventListener("click", async () => {
   const ok = await uploadPaperFile(p.id, f);
   if(!ok){ $("d-file-msg").innerHTML = '<p class="err">The upload did not go through. Try again.</p>'; return; }
   await loadAll();
-  $("d-file-msg").innerHTML = '<p class="ok">Uploaded. The paper is on file.</p>';
+  $("d-file-msg").innerHTML = '<p class="ok">Uploaded. The document is on file.</p>';
 });
 
 function reportRows(){
@@ -612,13 +791,13 @@ function reportRows(){
 function renderReport(){
   const rows = reportRows();
   if(!rows.length){ $("report-table").innerHTML = '<p class="mut">Nothing to report yet.</p>'; return; }
-  $("report-table").innerHTML = "<table><tr><th>Name</th><th>Paper</th><th>Ends</th><th>Status</th></tr>" +
+  $("report-table").innerHTML = "<table><tr><th>Name</th><th>Document</th><th>Ends</th><th>Status</th></tr>" +
     rows.map(r => "<tr><td>" + esc(r.who) + "</td><td>" + esc(r.what) + "</td><td style='white-space:nowrap'>" + r.ends + "</td><td>" + r.status + "</td></tr>").join("") + "</table>";
 }
 
 function showTab(t){
   document.querySelectorAll("#main-tabs button").forEach(x => x.classList.toggle("on", x.dataset.tab === t));
-  ["dash","add","report","detail","person"].forEach(x => $("tab-" + x).classList.toggle("hidden", x !== t));
+  ["dash","add","report","detail","person","trash","firm"].forEach(x => $("tab-" + x).classList.toggle("hidden", x !== t));
   if(t !== "detail") openId = null;
 }
 document.querySelectorAll("#main-tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -664,14 +843,14 @@ function renderPaperChoices(){
     '<div class="pickbox">' +
     '<label style="margin:0;font-weight:600"><input type="checkbox" class="n-kind" data-i="' + i + '" style="width:auto"> ' + o.label + '</label>' +
     '<div class="n-date-wrap hidden" id="n-date-wrap-' + i + '">' +
-      '<label>End date, if you already have this paper</label><input type="date" class="n-date" id="n-date-' + i + '">' +
+      '<label>End date, if you already have this document</label><input type="date" class="n-date" id="n-date-' + i + '">' +
       (o.hours ? '<label>License #</label><input type="text" id="n-license-no"><div class="row"><div><label>Training hours logged</label><input type="number" min="0" step="0.5" id="n-hours-logged"></div><div><label>Hours needed</label><input type="number" min="0" step="0.5" id="n-hours-needed"></div></div><p class="mut">CrewDue holds the hours a worker types in and counts what is still owed. It does not watch hours being earned.</p>' : '') +
-      '<label>Upload the paper, if you have it (photo or PDF)</label><input type="file" class="n-file" id="n-file-' + i + '" accept="image/*,.pdf">' +
+      '<label>Upload the document, if you have it (photo or PDF)</label><input type="file" class="n-file" id="n-file-' + i + '" accept="image/*,.pdf">' +
     '</div></div>').join("") +
     '<div class="pickbox"><label style="margin:0;font-weight:600"><input type="checkbox" id="n-other-check" style="width:auto"> Other</label>' +
-    '<div id="n-other-wrap" class="hidden"><label>What paper?</label><input type="text" id="n-other-name" placeholder="Safety certificate">' +
-    '<label>End date, if you already have this paper</label><input type="date" id="n-other-date">' +
-    '<label>Upload the paper, if you have it (photo or PDF)</label><input type="file" id="n-other-file" accept="image/*,.pdf"></div></div>';
+    '<div id="n-other-wrap" class="hidden"><label>What document?</label><input type="text" id="n-other-name" placeholder="Safety certificate">' +
+    '<label>End date, if you already have this document</label><input type="date" id="n-other-date">' +
+    '<label>Upload the document, if you have it (photo or PDF)</label><input type="file" id="n-other-file" accept="image/*,.pdf"></div></div>';
   document.querySelectorAll(".n-kind").forEach(cb => cb.addEventListener("change", () => {
     $("n-date-wrap-" + cb.dataset.i).classList.toggle("hidden", !cb.checked);
     updateVehWrap();
@@ -727,7 +906,7 @@ $("btn-add-person").addEventListener("click", async () => {
   });
   if($("n-other-check") && $("n-other-check").checked){
     const oname = $("n-other-name").value.trim();
-    if(!oname){ $("n-msg").innerHTML = '<p class="err">Type what the Other paper is.</p>'; return; }
+    if(!oname){ $("n-msg").innerHTML = '<p class="err">Type what the Other document is.</p>'; return; }
     const ofileEl = $("n-other-file");
     picked.push({ opt: { kind: oname, label: oname }, date: $("n-other-date").value || null, file: ofileEl && ofileEl.files && ofileEl.files[0] ? ofileEl.files[0] : null });
   }
@@ -784,9 +963,9 @@ $("btn-add-person").addEventListener("click", async () => {
   let dh = "";
   if(inList.length) dh += "<p><strong>In:</strong><br>" + inList.map(x => esc(x)).join("<br>") + "</p>";
   if(chaseList.length) dh += "<p><strong>We are now chasing for:</strong><br>" + chaseList.map(x => esc(x)).join("<br>") + "</p>";
-  if(!inList.length && !chaseList.length) dh += "<p>" + esc(personName) + " is added. No papers were ticked, so nothing is being chased yet.</p>";
+  if(!inList.length && !chaseList.length) dh += "<p>" + esc(personName) + " is added. No documents were ticked, so nothing is being chased yet.</p>";
   if(upList.length) dh += "<p><strong>Uploaded:</strong><br>" + upList.map(x => esc(x)).join("<br>") + "</p>";
-  if(upFail.length) dh += '<p class="err">Could not upload: ' + upFail.map(x => esc(x)).join(", ") + '. The paper is saved. Add the file from their page.</p>';
+  if(upFail.length) dh += '<p class="err">Could not upload: ' + upFail.map(x => esc(x)).join(", ") + '. The document is saved. Add the file from their page.</p>';
   dh += '<p class="mut">They now show on the home page and in the report, as what is in and what we are waiting for.</p>';
   $("add-done-body").innerHTML = dh;
   $("add-form-card").classList.add("hidden");
@@ -825,6 +1004,8 @@ function renderPerson(){
   const isSub = personSel.type === "sub";
   const name = isSub ? p.company_name : p.name;
   $("person-title").textContent = name;
+  $("remove-title").textContent = "Remove " + name + "'s entry";
+  $("btn-remove-person").textContent = "Remove " + name;
   let h = "";
   h += kv("Who they are", isSub ? "Subcontractor" : (p.person_type || "Employee"));
   if(isSub){ if(p.contact_name) h += kv("Contact", esc(p.contact_name)); if(p.trade) h += kv("Trade", esc(p.trade)); }
@@ -833,13 +1014,13 @@ function renderPerson(){
   if(p.email) h += kv("Email", esc(p.email));
   const addr = [p.address, p.city, p.state].filter(Boolean).join(", ");
   if(addr) h += kv("Address", esc(addr));
-  h += '<h2 style="margin-top:18px">Their papers</h2>';
+  h += '<h2 style="margin-top:18px">Their documents</h2>';
   if(isSub){
     const mine = papers.filter(x => x.holder_type === "sub" && x.sub_id === p.id);
     h += mine.map(x => paperRow(x, false, false)).join("");
     const miss = missingList().filter(m => m.sub && m.sub.id === p.id);
     h += miss.map(m => '<div class="paper"><div><strong>' + esc(m.kind) + '</strong><br><span class="mut">Not sent yet</span></div><span class="chip need">Still needed</span></div>').join("");
-    if(!mine.length && !miss.length) h += '<p class="mut">No papers yet.</p>';
+    if(!mine.length && !miss.length) h += '<p class="mut">No documents yet.</p>';
   } else {
     const mine = papers.filter(x => x.holder_type === "worker" && x.worker_id === p.id);
     h += mine.map(x => paperRow(x, false, false)).join("");
@@ -872,6 +1053,50 @@ function ppKindSync(){
 }
 $("pp-kind").addEventListener("change", ppKindSync);
 $("btn-person-back").addEventListener("click", () => { personSel = null; showTab("dash"); });
+
+$("btn-remove-person").addEventListener("click", async () => {
+  const p = personObj();
+  if(!p) return;
+  const isSub = personSel.type === "sub";
+  const name = isSub ? p.company_name : p.name;
+  if(!confirm("Remove " + name + "'s entry?\n\nThe whole entry goes to the Trash, with all of their documents. You can put it back any time in the next 7 days.\n\nDeleting a single document is separate. That is done on the document's own page.")) return;
+  const { error } = await sb.from(isSub ? "subs" : "workers").update({ deleted_at: new Date().toISOString() }).eq("id", p.id);
+  if(error) return;
+  lastDeleted = { kind: personSel.type, id: p.id, text: name + " · entry" };
+  personSel = null;
+  await loadAll();
+  showTab("dash");
+});
+
+const FIRM_KINDS = ["Firm license", "Firm insurance", "Vehicle insurance", "Vehicle registration", "Bond", "Business license", "Safety training card"];
+function renderFirm(){
+  if(!firm) return;
+  $("firm-title").textContent = firm.company_name;
+  let h = "";
+  if(firm.trade) h += kv("Trade", esc(firm.trade));
+  if(firm.state) h += kv("State", esc(firm.state));
+  const mine = papers.filter(p => p.holder_type === "firm");
+  h += '<p style="margin-top:14px"><strong>Your documents</strong></p>';
+  h += mine.length ? mine.map(p => paperRow(p, false, false)).join("") : '<p class="mut">No documents yet.</p>';
+  $("firm-body").innerHTML = h;
+  $("firm-body").querySelectorAll("[data-open]").forEach(el => el.addEventListener("click", () => openPaper(el.dataset.open)));
+  const sel = $("fp-kind");
+  if(sel && !sel.options.length) sel.innerHTML = FIRM_KINDS.map(k => '<option>' + k + '</option>').join("");
+}
+$("btn-firm-back").addEventListener("click", () => showTab("dash"));
+$("fp-kind").addEventListener("change", () => { $("fp-veh-wrap").classList.toggle("hidden", !["Vehicle insurance", "Vehicle registration"].includes($("fp-kind").value)); });
+$("btn-fp-add").addEventListener("click", async () => {
+  const row = { firm_id: firm.id, kind: $("fp-kind").value, holder_type: "firm", worker_id: null, sub_id: null,
+    label: $("fp-label").value.trim(), end_date: $("fp-date").value || null,
+    plate: $("fp-plate").value.trim() || null, vin: $("fp-vin").value.trim() || null };
+  const ins = await sb.from("papers").insert(row).select().single();
+  if(ins.error){ $("fp-msg").innerHTML = '<p class="err">' + esc(ins.error.message) + '</p>'; return; }
+  const f = $("fp-file").files && $("fp-file").files[0];
+  let note = "";
+  if(f){ const ok = await uploadPaperFile(ins.data.id, f); note = ok ? " File uploaded." : " The file did not upload. Add it from the document's page."; }
+  await loadAll();
+  $("fp-msg").innerHTML = '<p class="ok">Document added.' + note + '</p>';
+});
 $("btn-copy-person-link").addEventListener("click", async () => {
   try{ await navigator.clipboard.writeText($("person-link").value); $("btn-copy-person-link").textContent = "Copied"; }
   catch(e){ $("person-link").select(); }
@@ -897,11 +1122,11 @@ $("btn-pp-add").addEventListener("click", async () => {
   }
   const f = $("pp-file").files && $("pp-file").files[0];
   let upNote = "";
-  if(f && data){ const okUp = await uploadPaperFile(data.id, f); upNote = okUp ? " File uploaded." : " The file did not upload; add it from the paper's page."; }
+  if(f && data){ const okUp = await uploadPaperFile(data.id, f); upNote = okUp ? " File uploaded." : " The file did not upload; add it from the document's page."; }
   ["pp-label","pp-date","pp-plate","pp-vin","pp-license-no","pp-hours-logged","pp-hours-needed"].forEach(id => { $(id).value = ""; });
   $("pp-file").value = "";
   await loadAll();
-  $("pp-msg").innerHTML = '<p class="ok">Paper added.' + upNote + '</p>';
+  $("pp-msg").innerHTML = '<p class="ok">Document added.' + upNote + '</p>';
 });
 $("btn-pe-save").addEventListener("click", async () => {
   const p = personObj();
@@ -950,7 +1175,7 @@ $("btn-sample").addEventListener("click", async () => {
 
 $("btn-csv").addEventListener("click", () => {
   const rows = reportRows();
-  const csv = "Name,Paper,Ends,Status\n" + rows.map(r => [r.who, r.what, r.ends, r.status].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(",")).join("\n");
+  const csv = "Name,Document,Ends,Status\n" + rows.map(r => [r.who, r.what, r.ends, r.status].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "crewdue-report.csv"; a.click();
